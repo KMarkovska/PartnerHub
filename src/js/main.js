@@ -93,13 +93,24 @@ function setupAuthForm(formPage) {
     } catch (error) {
       notice.className = 'alert alert-danger';
       notice.textContent = error instanceof Error
-        ? error.message
+        ? getAuthErrorMessage(error, formPage)
         : 'Authentication failed. Please try again.';
     } finally {
       submitButton.disabled = false;
       submitButton.removeAttribute('aria-busy');
     }
   });
+}
+
+function getAuthErrorMessage(error, formPage) {
+  if (
+    formPage === 'register'
+    && error.message.toLowerCase().includes('email rate limit exceeded')
+  ) {
+    return 'Supabase has temporarily limited sign-up emails. Wait before retrying, or configure a custom SMTP provider in your Supabase Auth settings. Repeated attempts will continue to fail until the limit resets.';
+  }
+
+  return error.message;
 }
 
 function setupPageActions() {
