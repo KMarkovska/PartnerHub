@@ -38,13 +38,13 @@ To verify project connectivity, open the sign-in or registration page and select
 
 ## Supabase database setup
 
-The schema and access-control source is in `supabase/migrations/20261031190000_partnerhub_backend.sql`. It has **not** been applied to the hosted project. The current environment has a publishable key but no Supabase database-management credential or CLI, so it cannot apply migrations remotely.
+The schema and access-control source is in `supabase/migrations/20261031190000_partnerhub_backend.sql`. It was applied to the hosted project through the Supabase SQL Editor on 2026-10-31. Live checks confirmed all seven tables have RLS enabled, all 12 foreign keys and the document-parent constraint exist, the private bucket and its three Storage policies exist, and the profile trigger and guarded administrator function are installed. The pgTAP suite has not been run against the hosted project.
 
 1. Open the [PartnerHub Supabase SQL Editor](https://supabase.com/dashboard/project/pxsapaipigauweaghzwg/sql/new).
-2. Before applying anything, confirm the seven PartnerHub tables and `partnerhub-documents` bucket do not already exist. The migration aborts if the bucket already exists; it does not drop or replace existing objects.
-3. Open `supabase/migrations/20261031190000_partnerhub_backend.sql`, paste its complete contents into a new SQL Editor query, and run it. The SQL runs in a transaction.
-4. Verify the tables, RLS, foreign keys, policies, and bucket in the SQL Editor before continuing. The SQL test suite is `supabase/tests/database/partnerhub_rls.test.sql`; run it with Supabase CLI and a local Docker database (`supabase test db`) after configuring the CLI.
-5. After the migration succeeds, register an account so the auth trigger creates its `user` profile. Then run `supabase/seed.sql` in the SQL Editor to load fictional demo programs, customers, applications, projects, and milestones. Seeding requires at least one active profile and creates no user accounts.
+2. The current hosted project already has this migration. For a different project, first confirm the seven PartnerHub tables and `partnerhub-documents` bucket do not exist; the migration aborts if the bucket already exists and does not drop or replace existing objects.
+3. To apply it to a clean project, run the complete `supabase/migrations/20261031190000_partnerhub_backend.sql` file in the SQL Editor. The SQL runs in a transaction.
+4. The live project currently has no active profiles, so demo data has not been seeded. Register an account, bootstrap the first administrator using the trusted SQL below, then run `supabase/seed.sql` in the SQL Editor. Seeding requires at least one active profile and creates no user accounts.
+5. The SQL test suite is `supabase/tests/database/partnerhub_rls.test.sql`; run it against a local Docker database with Supabase CLI (`supabase test db`). It has not been run against the hosted project.
 
 The migration uses `RESTRICT` on record relationships to avoid cascading deletion of business records. RLS limits customer/application/project access to active owners or active administrators; milestone access follows project ownership; document access follows its application or project; inactive funding programs are hidden from regular users. Profile roles can only be changed through the administrator-guarded database function after the first administrator is bootstrapped. The storage bucket is private, limits uploads to 20 MiB and the listed document/image types, and uses paths shaped as `<uploader-uuid>/<applications|projects>/<record-uuid>/<document-uuid>/<filename>`.
 
