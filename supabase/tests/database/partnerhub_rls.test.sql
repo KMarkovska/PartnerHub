@@ -1,6 +1,6 @@
 begin;
 
-select plan(32);
+select plan(38);
 
 select has_table('public', 'profiles', 'profiles table exists');
 select has_table('public', 'customers', 'customers table exists');
@@ -168,6 +168,31 @@ values
    '71000000-0000-4000-8000-000000000002/projects/52000000-0000-4000-8000-000000000002/d2000000-0000-4000-8000-000000000002/two.pdf',
    'application/pdf', 100);
 
+insert into storage.objects (id, bucket_id, name)
+values
+  ('d3000000-0000-4000-8000-000000000001', 'partnerhub-documents',
+   '71000000-0000-4000-8000-000000000001/projects/52000000-0000-4000-8000-000000000001/d2000000-0000-4000-8000-000000000001/one.pdf'),
+  ('d3000000-0000-4000-8000-000000000002', 'partnerhub-documents',
+   '71000000-0000-4000-8000-000000000002/projects/52000000-0000-4000-8000-000000000002/d2000000-0000-4000-8000-000000000002/two.pdf');
+
+set local role anon;
+
+select throws_ok(
+  $$select count(*) from public.customers$$,
+  '42501',
+  null,
+  'anonymous users cannot access protected customer data'
+);
+
+select throws_ok(
+  $$select count(*) from storage.objects
+    where bucket_id = 'partnerhub-documents'$$,
+  '42501',
+  null,
+  'anonymous users cannot access document storage'
+);
+
+reset role;
 set local role authenticated;
 select set_config(
   'request.jwt.claim.sub',
@@ -214,6 +239,34 @@ select is(
   (select count(*)::integer from public.documents),
   1,
   'regular users see documents on their own projects only'
+);
+
+select is(
+  (select count(*)::integer
+   from storage.objects
+   where bucket_id = 'partnerhub-documents'),
+  1,
+  'regular users can read only storage objects for their own documents'
+);
+
+select lives_ok(
+  $$insert into storage.objects (bucket_id, name)
+    values (
+      'partnerhub-documents',
+      '71000000-0000-4000-8000-000000000001/projects/52000000-0000-4000-8000-000000000001/new-document/authorized.pdf'
+    )$$,
+  'regular users can upload to a path under their own project'
+);
+
+select throws_ok(
+  $$insert into storage.objects (bucket_id, name)
+    values (
+      'partnerhub-documents',
+      '71000000-0000-4000-8000-000000000002/projects/52000000-0000-4000-8000-000000000002/new-document/unauthorized.pdf'
+    )$$,
+  '42501',
+  null,
+  'regular users cannot upload to another user project path'
 );
 
 select throws_ok(
@@ -273,6 +326,14 @@ select is(
   (select count(*)::integer from public.documents),
   2,
   'active administrators can view all documents'
+);
+
+select is(
+  (select count(*)::integer
+   from storage.objects
+   where bucket_id = 'partnerhub-documents'),
+  3,
+  'active administrators can read all authorized storage objects'
 );
 
 select lives_ok(
