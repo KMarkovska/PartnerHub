@@ -58,6 +58,8 @@ where id = 'AUTH_USER_UUID';
 
 After that, active administrators should use the guarded `public.set_profile_access` function to assign roles or deactivate accounts. Application clients cannot update profile roles directly.
 
+GitHub Actions runs the same pgTAP suite on pushes to `main` and pull requests targeting `main`. The workflow uses a fresh local Supabase stack on `ubuntu-latest` and does not connect to the hosted project or require production secrets. View results in the repository's **Actions** tab under **Database tests**.
+
 ## Build and preview
 
 ```sh

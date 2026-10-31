@@ -1,0 +1,43 @@
+name: Database tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  database-tests:
+    name: Supabase pgTAP
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies and pinned Supabase CLI
+        run: npm ci
+
+      - name: Verify Supabase CLI version
+        run: test "$(npx supabase --version)" = "2.122.0"
+
+      - name: Start isolated local Supabase stack
+        run: npx supabase start > /dev/null 2>&1
+
+      - name: Apply migrations to the local database
+        run: npx supabase db reset --local --no-seed
+
+      - name: Run pgTAP database tests
+        run: npm run test:db -- supabase/tests/database/partnerhub_rls.test.sql
