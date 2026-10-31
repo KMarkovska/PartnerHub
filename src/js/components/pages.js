@@ -173,6 +173,7 @@ export function renderAuthPage(pageId) {
             ${isRegister ? '<div class="mb-4"><label class="form-label" for="confirm-password">Confirm password</label><input class="form-control form-control-lg" id="confirm-password" name="confirmPassword" type="password" autocomplete="new-password" minlength="8" required></div>' : ''}
             <button class="btn btn-primary btn-lg w-100" type="submit">${isRegister ? 'Create account' : 'Sign in'}<i class="bi bi-arrow-right ms-2" aria-hidden="true"></i></button>
           </form>
+          <button class="btn btn-outline-secondary w-100 mt-2" id="verify-supabase-connection" type="button">Test Supabase connection</button>
           <p class="auth-switch">${isRegister ? 'Already have an account?' : 'New to PartnerHub?'} <a href="/src/pages/${isRegister ? 'login' : 'register'}.html">${isRegister ? 'Sign in' : 'Create an account'}</a></p>
         </div>
       </section>

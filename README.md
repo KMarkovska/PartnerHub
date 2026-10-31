@@ -34,6 +34,8 @@ Open the local URL printed by Vite. The root page takes you to the sign-in scree
 
 Sign-in and account creation use Supabase Auth. Account registration stores the full name as user metadata. Database profiles, live application data, role enforcement, and file storage are not configured yet; the interface labels this setup state rather than showing fabricated records.
 
+To verify project connectivity, open the sign-in or registration page and select **Test Supabase connection**. The check calls the Supabase Auth settings endpoint using the configured publishable key and reports success or a sanitized HTTP error without displaying the key.
+
 ## Build and preview
 
 ```sh

@@ -4,7 +4,7 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import '../css/style.css';
 import { renderLayout } from './components/layout.js';
 import { renderAuthPage } from './components/pages.js';
-import { supabase } from './config/supabase.js';
+import { supabase, verifySupabaseConnection } from './config/supabase.js';
 
 const pageId = document.body.dataset.page;
 
@@ -23,6 +23,7 @@ function setupAuthForm(formPage) {
   const password = document.getElementById('password');
   const confirmPassword = document.getElementById('confirm-password');
   const submitButton = form.querySelector('button[type="submit"]');
+  const verifyButton = document.getElementById('verify-supabase-connection');
 
   if (confirmPassword) {
     const validatePasswordMatch = () => {
@@ -35,6 +36,26 @@ function setupAuthForm(formPage) {
     password.addEventListener('input', validatePasswordMatch);
     confirmPassword.addEventListener('input', validatePasswordMatch);
   }
+
+  verifyButton.addEventListener('click', async () => {
+    verifyButton.disabled = true;
+    verifyButton.setAttribute('aria-busy', 'true');
+    notice.className = 'alert d-none';
+
+    try {
+      await verifySupabaseConnection();
+      notice.className = 'alert alert-success';
+      notice.textContent = 'Successfully connected to the Supabase project.';
+    } catch (error) {
+      notice.className = 'alert alert-danger';
+      notice.textContent = error instanceof Error
+        ? error.message
+        : 'Could not verify the Supabase connection.';
+    } finally {
+      verifyButton.disabled = false;
+      verifyButton.removeAttribute('aria-busy');
+    }
+  });
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
