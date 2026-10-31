@@ -132,12 +132,46 @@ export const pages = {
     subtitle: 'Manage workspace access, roles, and account status.',
     icon: 'bi-shield-check',
     content: `
-      <div class="alert alert-info d-flex gap-2 align-items-start" role="status"><i class="bi bi-info-circle mt-1" aria-hidden="true"></i><div><strong>Administrator access verified.</strong> User management and workspace metrics are not implemented yet. Database permissions remain enforced by Supabase.</div></div>
+      <div id="admin-metrics-state" class="text-muted small mb-3" role="status" aria-live="polite">Loading administration metrics…</div>
+      <div id="admin-metrics-error" class="alert alert-danger d-none" role="alert"></div>
+      <div class="row g-3 mb-4">
+        ${[
+          ['Total users', 'totalUsers', 'bi-people', 'bi-blue'],
+          ['Active users', 'activeUsers', 'bi-person-check', 'bi-green'],
+          ['Customers', 'totalCustomers', 'bi-buildings', 'bi-violet'],
+          ['Funding applications', 'totalApplications', 'bi-files', 'bi-blue'],
+          ['Awaiting review', 'awaitingReview', 'bi-hourglass-split', 'bi-amber'],
+          ['Approved applications', 'approvedApplications', 'bi-check-circle', 'bi-green'],
+          ['Projects', 'totalProjects', 'bi-kanban', 'bi-violet'],
+        ].map(([label, key, icon, color]) => `
+          <div class="col-12 col-sm-6 col-xl-3">
+            <section class="card kpi-card h-100">
+              <div class="card-body">
+                <div class="kpi-topline"><span class="kpi-label">${label}</span><span class="kpi-icon ${color}"><i class="bi ${icon}" aria-hidden="true"></i></span></div>
+                <p class="kpi-value mb-0" data-admin-metric="${key}">—</p>
+              </div>
+            </section>
+          </div>
+        `).join('')}
+      </div>
       <section class="card content-card">
-        <div class="card-body border-bottom"><div class="row g-2"><div class="col-12 col-lg-6"><label class="visually-hidden" for="user-search">Search users</label><div class="input-group"><span class="input-group-text bg-white"><i class="bi bi-search" aria-hidden="true"></i></span><input id="user-search" class="form-control" type="search" placeholder="Search users by name or email"></div></div><div class="col-12 col-sm-6 col-lg-3"><label class="visually-hidden" for="user-role">Filter by role</label><select id="user-role" class="form-select"><option>All roles</option><option>Administrator</option><option>Regular user</option></select></div></div></div>
-        ${table(['User', 'Email', 'Role', 'Account status', 'Joined', ''], 'User management is not connected yet', 'Workspace members will appear here when the administration data view is implemented.', 'bi-people')}
+        <div class="card-header"><div><h2 class="section-title">User management</h2><p class="section-subtitle">Registered users and their workspace access</p></div></div>
+        <div class="card-body border-bottom"><div class="row g-2">
+          <div class="col-12 col-lg-6"><label class="visually-hidden" for="user-search">Search users</label><div class="input-group"><span class="input-group-text bg-white"><i class="bi bi-search" aria-hidden="true"></i></span><input id="user-search" class="form-control" type="search" placeholder="Search users by name or email"></div></div>
+          <div class="col-12 col-sm-6 col-lg-3"><label class="visually-hidden" for="user-role">Filter by role</label><select class="form-select" id="user-role"><option value="">All roles</option><option value="admin">Administrators</option><option value="user">Regular users</option></select></div>
+        </div></div>
+        <div id="admin-users-feedback" class="alert d-none mx-3 mt-3" role="status" aria-live="polite"></div>
+        <div id="admin-users-loading" class="p-4 text-muted" role="status" aria-live="polite"><span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Loading registered users…</div>
+        <div id="admin-users-error" class="alert alert-danger d-none m-3" role="alert"></div>
+        <div id="admin-users-empty" class="d-none">${emptyState('bi-people', 'No registered users', 'User profiles will appear here after account registration.')}</div>
+        <div id="admin-users-table" class="table-responsive d-none">
+          <table class="table align-middle data-table">
+            <thead><tr><th scope="col">User</th><th scope="col">Email</th><th scope="col">Role</th><th scope="col">Account status</th><th scope="col">Registered</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr></thead>
+            <tbody id="admin-users-body"></tbody>
+          </table>
+          <div id="admin-users-filter-empty" class="text-muted p-3 d-none" role="status">No users match the selected filters.</div>
+        </div>
       </section>
-      <section class="card content-card mt-3"><div class="card-header"><div><h2 class="section-title">Workspace overview</h2><p class="section-subtitle">Platform-wide customer, application, and project activity</p></div></div><div class="row g-3 p-3"><div class="col-12 col-md-4"><div class="admin-metric"><span>Customers</span><strong>—</strong></div></div><div class="col-12 col-md-4"><div class="admin-metric"><span>Applications</span><strong>—</strong></div></div><div class="col-12 col-md-4"><div class="admin-metric"><span>Projects</span><strong>—</strong></div></div></div></section>
     `,
   },
   programs: {

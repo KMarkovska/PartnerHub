@@ -1,6 +1,6 @@
 begin;
 
-select plan(38);
+select plan(43);
 
 select has_table('public', 'profiles', 'profiles table exists');
 select has_table('public', 'customers', 'customers table exists');
@@ -192,6 +192,13 @@ select is(
   'anonymous users cannot access document storage'
 );
 
+select throws_ok(
+  $$select * from public.admin_list_profiles()$$,
+  '42501',
+  null,
+  'anonymous users cannot access administrator profile details'
+);
+
 reset role;
 set local role authenticated;
 select set_config(
@@ -285,6 +292,13 @@ select throws_ok(
   'users cannot directly change their profile role'
 );
 
+select throws_ok(
+  $$select * from public.admin_list_profiles()$$,
+  '42501',
+  'An active administrator is required to view profile details.',
+  'regular users cannot access administrator profile details'
+);
+
 reset role;
 set local role authenticated;
 select set_config(
@@ -296,6 +310,21 @@ select set_config(
   'request.jwt.claims',
   '{"sub":"71000000-0000-4000-8000-000000000002","role":"authenticated"}',
   true
+);
+
+select is(
+  (select count(*)::integer from public.admin_list_profiles()),
+  2,
+  'active administrators can list all profiles'
+);
+
+select ok(
+  exists (
+    select 1
+    from public.admin_list_profiles()
+    where email = 'rls-user-one@example.invalid'
+  ),
+  'administrator profile listing includes Auth email addresses'
 );
 
 select is(
@@ -334,6 +363,17 @@ select is(
    where bucket_id = 'partnerhub-documents'),
   3,
   'active administrators can read all authorized storage objects'
+);
+
+select throws_ok(
+  $$select public.set_profile_access(
+    '71000000-0000-4000-8000-000000000002',
+    'user',
+    true
+  )$$,
+  '42501',
+  'Administrators cannot change their own profile access.',
+  'administrators cannot modify their own role or status'
 );
 
 select lives_ok(

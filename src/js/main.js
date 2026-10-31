@@ -2,6 +2,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import '../css/style.css';
+import { setupAdminPage } from './components/admin.js';
 import { renderLayout } from './components/layout.js';
 import { renderAuthPage } from './components/pages.js';
 import {
@@ -202,6 +203,9 @@ async function setupProtectedPage(protectedPageId) {
   setProfileSummary(identity.profile);
   setupAuthStateListener(identity.user.id);
   setupPageActions();
+  if (protectedPageId === 'admin') {
+    setupAdminPage(identity.user.id);
+  }
 
   const query = new URLSearchParams(window.location.search);
   const notice = document.getElementById('page-notice');
