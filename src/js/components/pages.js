@@ -132,10 +132,10 @@ export const pages = {
     subtitle: 'Manage workspace access, roles, and account status.',
     icon: 'bi-shield-check',
     content: `
-      <div class="alert alert-warning d-flex gap-2 align-items-start" role="alert"><i class="bi bi-shield-exclamation mt-1" aria-hidden="true"></i><div><strong>Administrator access is not configured.</strong> Connect Supabase Auth and enforce role checks with database policies before using administrative actions.</div></div>
+      <div class="alert alert-info d-flex gap-2 align-items-start" role="status"><i class="bi bi-info-circle mt-1" aria-hidden="true"></i><div><strong>Administrator access verified.</strong> User management and workspace metrics are not implemented yet. Database permissions remain enforced by Supabase.</div></div>
       <section class="card content-card">
         <div class="card-body border-bottom"><div class="row g-2"><div class="col-12 col-lg-6"><label class="visually-hidden" for="user-search">Search users</label><div class="input-group"><span class="input-group-text bg-white"><i class="bi bi-search" aria-hidden="true"></i></span><input id="user-search" class="form-control" type="search" placeholder="Search users by name or email"></div></div><div class="col-12 col-sm-6 col-lg-3"><label class="visually-hidden" for="user-role">Filter by role</label><select id="user-role" class="form-select"><option>All roles</option><option>Administrator</option><option>Regular user</option></select></div></div></div>
-        ${table(['User', 'Email', 'Role', 'Account status', 'Joined', ''], 'No users to display', 'Workspace members will appear here after authentication is configured.', 'bi-people')}
+        ${table(['User', 'Email', 'Role', 'Account status', 'Joined', ''], 'User management is not connected yet', 'Workspace members will appear here when the administration data view is implemented.', 'bi-people')}
       </section>
       <section class="card content-card mt-3"><div class="card-header"><div><h2 class="section-title">Workspace overview</h2><p class="section-subtitle">Platform-wide customer, application, and project activity</p></div></div><div class="row g-3 p-3"><div class="col-12 col-md-4"><div class="admin-metric"><span>Customers</span><strong>—</strong></div></div><div class="col-12 col-md-4"><div class="admin-metric"><span>Applications</span><strong>—</strong></div></div><div class="col-12 col-md-4"><div class="admin-metric"><span>Projects</span><strong>—</strong></div></div></div></section>
     `,
@@ -145,8 +145,9 @@ export const pages = {
     subtitle: 'Review available programs and eligibility requirements.',
     icon: 'bi-award',
     action: actionButton('New funding program'),
+    actionAdminOnly: true,
     content: `
-      <div class="alert alert-info d-flex gap-2 align-items-start" role="status"><i class="bi bi-info-circle mt-1" aria-hidden="true"></i><div>Only administrators will be able to create or edit funding programs once authentication and access policies are connected.</div></div>
+      <div class="alert alert-info d-flex gap-2 align-items-start" role="status"><i class="bi bi-info-circle mt-1" aria-hidden="true"></i><div>Funding program data is not connected yet. Supabase restricts program management to administrators and allows regular users to view active programs.</div></div>
       <section class="card content-card">
         <div class="card-body border-bottom"><div class="row g-2"><div class="col-12 col-lg-6"><label class="visually-hidden" for="program-search">Search funding programs</label><div class="input-group"><span class="input-group-text bg-white"><i class="bi bi-search" aria-hidden="true"></i></span><input id="program-search" class="form-control" type="search" placeholder="Search funding programs"></div></div><div class="col-12 col-sm-6 col-lg-3"><label class="visually-hidden" for="program-status">Filter funding programs</label><select id="program-status" class="form-select"><option>All programs</option><option>Active</option><option>Inactive</option></select></div></div></div>
         ${table(['Program', 'Description', 'Maximum funding', 'Eligibility', 'Status', ''], 'No funding programs yet', 'Available funding opportunities will appear here when connected.', 'bi-award')}
@@ -167,7 +168,7 @@ export function renderAuthPage(pageId) {
           <p class="auth-description">${isRegister ? 'Set up your workspace access to manage funding and projects.' : 'Manage partner funding and projects in one place.'}</p>
           <div id="auth-notice" class="alert d-none" role="status" aria-live="polite"></div>
           <form id="auth-form">
-            ${isRegister ? '<div class="mb-3"><label class="form-label" for="full-name">Full name</label><input class="form-control form-control-lg" id="full-name" name="name" autocomplete="name" required></div>' : ''}
+            ${isRegister ? '<div class="mb-3"><label class="form-label" for="full-name">Full name</label><input class="form-control form-control-lg" id="full-name" name="name" autocomplete="name" minlength="2" maxlength="100" required></div>' : ''}
             <div class="mb-3"><label class="form-label" for="email">Email address</label><input class="form-control form-control-lg" id="email" name="email" type="email" autocomplete="email" placeholder="you@company.com" required></div>
             <div class="mb-3"><label class="form-label" for="password">Password</label><input class="form-control form-control-lg" id="password" name="password" type="password" autocomplete="${isRegister ? 'new-password' : 'current-password'}" minlength="8" required></div>
             ${isRegister ? '<div class="mb-4"><label class="form-label" for="confirm-password">Confirm password</label><input class="form-control form-control-lg" id="confirm-password" name="confirmPassword" type="password" autocomplete="new-password" minlength="8" required></div>' : ''}

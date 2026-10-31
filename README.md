@@ -32,7 +32,7 @@ Open the local URL printed by Vite. The root page takes you to the sign-in scree
 - `/src/pages/admin.html`
 - `/src/pages/programs.html`
 
-Sign-in and account creation use Supabase Auth. The database migration creates profiles, funding and project tables, role safeguards, RLS policies, and a private documents bucket. Database-backed page data and file upload/download workflows are not implemented yet.
+Sign-in, account creation, session persistence, protected pages, profile loading, role-based navigation, administrator-only routing, and logout use Supabase Auth and the `profiles` table. New accounts receive the database's default `user` role through the profile trigger; registration never accepts a role. Supabase RLS and database functions remain the authority for data access. Most database-backed page data and file upload/download workflows are not implemented yet.
 
 To verify project connectivity, open the sign-in or registration page and select **Test Supabase connection**. The check calls the Supabase Auth settings endpoint using the configured publishable key and reports success or a sanitized HTTP error without displaying the key.
 

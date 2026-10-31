@@ -217,24 +217,32 @@ a {
   font-weight: 550;
 }
 
-.environment-pill span {
+.environment-pill > span:first-child {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #e7a53b;
+  background: #36a269;
 }
 
-.topbar-avatar {
-  display: grid;
-  width: 34px;
-  height: 34px;
-  place-items: center;
-  border: 1px solid #dce8f6;
-  border-radius: 50%;
-  background: #edf4fc;
-  color: var(--navy);
+.environment-pill > span:last-child {
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: transparent;
+}
+
+.topbar-user-name {
+  max-width: 220px;
+  overflow: hidden;
+  color: #475467;
   font-size: 0.73rem;
-  font-weight: 700;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sign-out-button {
+  white-space: nowrap;
 }
 
 .mobile-menu-button,
@@ -541,6 +549,21 @@ a {
   background: radial-gradient(ellipse at 50% 35%, #fff 0%, #f5f7fa 74%);
 }
 
+.auth-loading {
+  display: grid;
+  min-height: 100vh;
+  align-content: center;
+  justify-items: center;
+  padding: 24px;
+  color: #596475;
+  font-size: 0.9rem;
+}
+
+.auth-error-card {
+  width: min(100%, 440px);
+  margin: 0;
+}
+
 .auth-brand {
   margin-bottom: 23px;
   font-size: 1.28rem;
@@ -684,12 +707,6 @@ a {
     padding: 16px 14px;
   }
 
-  .setup-notice {
-    align-items: flex-start;
-    margin-bottom: 21px;
-    font-size: 0.73rem;
-  }
-
   .page-heading {
     align-items: flex-start;
     flex-direction: column;
@@ -716,5 +733,14 @@ a {
 
   .auth-card .card-body {
     padding: 25px 21px;
+  }
+
+  .topbar-user-name {
+    display: none;
+  }
+
+  .sign-out-button {
+    padding: 5px 7px;
+    font-size: 0.68rem;
   }
 }
