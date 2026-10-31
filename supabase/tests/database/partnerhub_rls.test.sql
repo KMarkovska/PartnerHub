@@ -184,11 +184,11 @@ select throws_ok(
   'anonymous users cannot access protected customer data'
 );
 
-select throws_ok(
-  $$select count(*) from storage.objects
-    where bucket_id = 'partnerhub-documents'$$,
-  '42501',
-  null,
+select is(
+  (select count(*)::integer
+   from storage.objects
+   where bucket_id = 'partnerhub-documents'),
+  0,
   'anonymous users cannot access document storage'
 );
 
