@@ -176,7 +176,7 @@ export function renderAuthPage(pageId) {
           <p class="auth-switch">${isRegister ? 'Already have an account?' : 'New to PartnerHub?'} <a href="/src/pages/${isRegister ? 'login' : 'register'}.html">${isRegister ? 'Sign in' : 'Create an account'}</a></p>
         </div>
       </section>
-      <p class="auth-footnote"><i class="bi bi-lock me-1" aria-hidden="true"></i>Authentication will be secured with Supabase.</p>
+      <p class="auth-footnote"><i class="bi bi-lock me-1" aria-hidden="true"></i>Authentication is powered by Supabase.</p>
     </main>
   `;
 }

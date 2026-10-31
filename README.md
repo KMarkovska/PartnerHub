@@ -7,7 +7,7 @@ PartnerHub is a responsive, multi-page starter for managing partner funding appl
 - HTML, CSS, and JavaScript ES modules
 - Bootstrap 5 and Bootstrap Icons
 - Vite
-- Supabase integration is planned but not configured yet
+- Supabase Auth client using the publishable key from local environment variables
 
 ## Run locally
 
@@ -17,6 +17,8 @@ Install dependencies and start the Vite development server:
 npm install
 npm run dev
 ```
+
+Copy `.env.example` to `.env` and set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` to your Supabase project URL and publishable key. Never put a Supabase secret or service-role key in frontend environment variables. `.env` is ignored by Git.
 
 Open the local URL printed by Vite. The root page takes you to the sign-in screen. The current screens are available at:
 
@@ -30,7 +32,7 @@ Open the local URL printed by Vite. The root page takes you to the sign-in scree
 - `/src/pages/admin.html`
 - `/src/pages/programs.html`
 
-The UI currently provides responsive page layouts, navigation, empty states, and form validation. Authentication, live data, role enforcement, and file storage require Supabase configuration and are not active yet; the interface labels this setup state rather than showing fabricated records.
+Sign-in and account creation use Supabase Auth. Account registration stores the full name as user metadata. Database profiles, live application data, role enforcement, and file storage are not configured yet; the interface labels this setup state rather than showing fabricated records.
 
 ## Build and preview
 
