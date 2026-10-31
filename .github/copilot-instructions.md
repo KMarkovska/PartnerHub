@@ -4,7 +4,7 @@
 
 **Project Name:** PartnerHub  
 **Project Type:** Partner Funding & Project Management Platform  
-**Purpose:** SoftUni AI – Software Technologies with AI Capstone Project
+**Purpose:** Software Technologies with AI Capstone Project
 
 PartnerHub is a responsive, multi-page business web application designed to manage partner funding opportunities, customers, funding applications, projects, milestones and supporting documents.
 
@@ -743,4 +743,4 @@ When a request is ambiguous, ask for clarification rather than making major arch
 
 When proposing improvements, prioritize simplicity, maintainability, security and compatibility with the capstone requirements.
 
-The final goal is a fully functional, secure, responsive, multi-page business application that demonstrates good software engineering practices and meets all SoftUni capstone assessment criteria.
+The final goal is a fully functional, secure, responsive, multi-page business application that demonstrates good software engineering practices and meets all capstone assessment criteria.
