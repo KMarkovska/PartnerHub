@@ -15,7 +15,10 @@ export async function signUp(fullName, email, password) {
   return supabase.auth.signUp({
     email,
     password,
-    options: { data: { full_name: fullName } },
+    options: {
+      data: { full_name: fullName },
+      emailRedirectTo: new URL('/src/pages/login.html', window.location.origin).toString(),
+    },
   });
 }
 
