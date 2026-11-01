@@ -126,15 +126,47 @@ export const pages = {
     title: 'Customers',
     subtitle: 'Manage company profiles and their funding activity.',
     icon: 'bi-buildings',
-    action: actionButton('Add customer'),
+    action: '<button class="btn btn-primary" type="button" data-action="customer-create"><i class="bi bi-plus-lg me-2" aria-hidden="true"></i>Add customer</button>',
     content: `
       <section class="card content-card">
         <div class="card-body border-bottom">
           <label class="visually-hidden" for="customer-search">Search customers</label>
           <div class="input-group search-control"><span class="input-group-text bg-white"><i class="bi bi-search" aria-hidden="true"></i></span><input id="customer-search" class="form-control" type="search" placeholder="Search by company, contact, or email"></div>
         </div>
-        ${table(['Company', 'Country', 'Contact person', 'Contact email', 'Applications', 'Assigned to', ''], 'No customers yet', 'Add a customer to start organizing your funding applications.', 'bi-buildings')}
+        <div id="customers-loading" class="text-muted small p-3" role="status" aria-live="polite">Loading customers…</div>
+        <div id="customers-error" class="alert alert-danger m-3 d-none" role="alert"></div>
+        <div id="customers-empty" class="d-none">${emptyState('bi-buildings', 'No customers yet', 'Add a customer to start organizing your funding applications.')}</div>
+        <div id="customers-filter-empty" class="text-muted small text-center p-4 d-none">No customers match your search.</div>
+        <div class="table-responsive">
+          <table class="table align-middle data-table">
+            <thead><tr>${['Company', 'Country', 'Contact person', 'Contact email', 'Applications', 'Assigned to'].map((column) => `<th scope="col">${column}</th>`).join('')}</tr></thead>
+            <tbody id="customers-body"></tbody>
+          </table>
+        </div>
       </section>
+      <div class="modal fade" id="customer-modal" tabindex="-1" aria-labelledby="customer-modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <form id="customer-form">
+              <div class="modal-header">
+                <div><h2 class="modal-title fs-5" id="customer-modal-title">Add customer</h2><p class="text-muted small mb-0">Add a company to your workspace.</p></div>
+                <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <div id="customer-form-error" class="alert alert-danger d-none" role="alert"></div>
+                <div class="mb-3"><label class="form-label" for="customer-name">Company name</label><input class="form-control" id="customer-name" name="name" maxlength="200" required></div>
+                <div class="mb-3"><label class="form-label" for="customer-country">Country</label><input class="form-control" id="customer-country" name="country" maxlength="100" autocomplete="country-name"></div>
+                <div class="mb-3"><label class="form-label" for="customer-contact-name">Contact person</label><input class="form-control" id="customer-contact-name" name="contactName" maxlength="150" autocomplete="name"></div>
+                <div><label class="form-label" for="customer-contact-email">Contact email</label><input class="form-control" id="customer-contact-email" name="contactEmail" type="email" maxlength="254" autocomplete="email"></div>
+              </div>
+              <div class="modal-footer">
+                <button class="btn btn-light border" type="button" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" type="submit"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>Save customer</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     `,
   },
   projects: {

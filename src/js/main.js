@@ -4,6 +4,7 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import '../css/style.css';
 import { setupAdminPage } from './components/admin.js';
 import { setupApplicationsPage } from './components/applications.js';
+import { setupCustomersPage } from './components/customers.js';
 import { renderLayout } from './components/layout.js';
 import { renderAuthPage, renderPasswordRecoveryPage } from './components/pages.js';
 import {
@@ -307,6 +308,9 @@ async function setupProtectedPage(protectedPageId) {
   }
   if (protectedPageId === 'applications') {
     setupApplicationsPage(identity.user.id);
+  }
+  if (protectedPageId === 'customers') {
+    setupCustomersPage(identity.user.id);
   }
 
   const query = new URLSearchParams(window.location.search);
