@@ -134,6 +134,12 @@ async function setupAuthForm(formPage) {
       );
     }
 
+    password.setCustomValidity(
+      formPage === 'register' && password.value && Array.from(password.value).length < 8
+        ? 'Use at least 8 characters.'
+        : '',
+    );
+
     if (confirmPassword) {
       confirmPassword.setCustomValidity(
         confirmPassword.value && password.value !== confirmPassword.value
