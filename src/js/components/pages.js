@@ -271,6 +271,25 @@ export const pages = {
           </div>
         </div>
       </div>
+      <div class="modal fade" id="document-delete-confirmation" tabindex="-1" aria-labelledby="document-delete-confirmation-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <div><h2 class="modal-title fs-5" id="document-delete-confirmation-title">Permanently delete document?</h2><p class="text-muted small mb-0">This action cannot be undone.</p></div>
+              <button class="btn-close" id="document-delete-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div id="document-delete-error" class="alert alert-danger d-none" role="alert"></div>
+              <p class="mb-2">Delete this document and its stored file?</p>
+              <p class="fw-semibold text-break mb-0" id="document-delete-file-name"></p>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-light border" id="document-delete-cancel" type="button" data-bs-dismiss="modal">Cancel</button>
+              <button class="btn btn-danger" id="document-delete-confirm" type="button"><i class="bi bi-trash me-1" aria-hidden="true"></i>Delete permanently</button>
+            </div>
+          </div>
+        </div>
+      </div>
     `,
   },
   admin: {

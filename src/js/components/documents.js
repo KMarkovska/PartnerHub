@@ -13,6 +13,12 @@ const maximumFileSize = 20 * 1024 * 1024;
 export function setupDocumentsPage(currentUserId, role) {
   const isAdmin = role === 'admin';
   const modal = Modal.getOrCreateInstance(document.getElementById('document-modal'));
+  const deleteConfirmationElement = document.getElementById('document-delete-confirmation');
+  const deleteConfirmationModal = Modal.getOrCreateInstance(deleteConfirmationElement);
+  const deleteConfirmationButton = document.getElementById('document-delete-confirm');
+  const deleteConfirmationCancel = document.getElementById('document-delete-cancel');
+  const deleteConfirmationClose = document.getElementById('document-delete-close');
+  const deleteConfirmationError = document.getElementById('document-delete-error');
   const form = document.getElementById('document-form');
   const formError = document.getElementById('document-form-error');
   const parentSelect = document.getElementById('document-parent');
@@ -22,6 +28,8 @@ export function setupDocumentsPage(currentUserId, role) {
   const submitButton = form.querySelector('button[type="submit"]');
   let documents = [];
   let parents = { applications: [], projects: [] };
+  let pendingDelete = null;
+  let isDeletingDocument = false;
 
   parentSelect.disabled = true;
   fileInput.disabled = true;
@@ -48,22 +56,11 @@ export function setupDocumentsPage(currentUserId, role) {
 
     if (button.matches('[data-document-delete]')) {
       if (!isAdmin) return;
-      const confirmed = window.confirm(
-        `Permanently delete "${documentRecord.file_name}" and its stored file? This cannot be undone.`,
-      );
-      if (!confirmed) return;
-
-      button.disabled = true;
-      try {
-        await deleteDocument(documentRecord.id, documentRecord.storage_path);
-        showPageNotice('Document permanently deleted.', 'success');
-        await loadDocuments();
-      } catch (error) {
-        showPageNotice(`Could not delete the document: ${getErrorMessage(error, 'Please try again.')}`, 'danger');
-        await loadDocuments();
-      } finally {
-        button.disabled = false;
-      }
+      pendingDelete = { documentRecord, button };
+      document.getElementById('document-delete-file-name').textContent = documentRecord.file_name;
+      deleteConfirmationError.classList.add('d-none');
+      deleteConfirmationError.textContent = '';
+      deleteConfirmationModal.show();
       return;
     }
 
@@ -80,6 +77,45 @@ export function setupDocumentsPage(currentUserId, role) {
       showPageNotice(`Could not download the document: ${getErrorMessage(error, 'Please try again.')}`, 'danger');
     } finally {
       button.disabled = false;
+    }
+  });
+  deleteConfirmationElement.addEventListener('hide.bs.modal', (event) => {
+    if (isDeletingDocument) event.preventDefault();
+  });
+  deleteConfirmationElement.addEventListener('hidden.bs.modal', () => {
+    pendingDelete = null;
+  });
+  deleteConfirmationButton.addEventListener('click', async () => {
+    if (!pendingDelete || isDeletingDocument) return;
+
+    const { documentRecord, button } = pendingDelete;
+    isDeletingDocument = true;
+    deleteConfirmationButton.disabled = true;
+    deleteConfirmationCancel.disabled = true;
+    deleteConfirmationClose.disabled = true;
+    button.disabled = true;
+    button.setAttribute('aria-busy', 'true');
+    deleteConfirmationButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Deleting…';
+
+    try {
+      await deleteDocument(documentRecord.id, documentRecord.storage_path);
+      showPageNotice('Document permanently deleted.', 'success');
+      pendingDelete = null;
+      isDeletingDocument = false;
+      deleteConfirmationModal.hide();
+      await loadDocuments();
+    } catch (error) {
+      deleteConfirmationError.textContent = `Could not delete the document: ${getErrorMessage(error, 'Please try again.')}`;
+      deleteConfirmationError.classList.remove('d-none');
+      await loadDocuments();
+    } finally {
+      isDeletingDocument = false;
+      deleteConfirmationButton.disabled = false;
+      deleteConfirmationCancel.disabled = false;
+      deleteConfirmationClose.disabled = false;
+      deleteConfirmationButton.innerHTML = '<i class="bi bi-trash me-1" aria-hidden="true"></i>Delete permanently';
+      button.disabled = false;
+      button.removeAttribute('aria-busy');
     }
   });
 
