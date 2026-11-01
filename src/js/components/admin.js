@@ -195,7 +195,16 @@ function formatDate(value) {
 }
 
 function getErrorMessage(error, fallback) {
-  return error instanceof Error && error.message ? error.message : fallback;
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof error !== 'object' || error === null) return fallback;
+
+  const code = 'code' in error && typeof error.code === 'string' ? error.code : '';
+  const message = 'message' in error && typeof error.message === 'string' ? error.message : '';
+  if (code === 'PGRST202' || (message.includes('admin_list_profiles') && /not find|not exist/i.test(message))) {
+    return 'The admin user-list function is missing from this Supabase project. Apply the admin user-management migration, then reload.';
+  }
+  if (message) return code ? `${message} (${code})` : message;
+  return fallback;
 }
 
 function escapeHtml(value) {
