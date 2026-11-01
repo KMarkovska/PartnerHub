@@ -173,17 +173,56 @@ export const pages = {
     title: 'Projects',
     subtitle: 'Monitor delivery, ownership, and project milestones.',
     icon: 'bi-kanban',
-    action: actionButton('New project'),
+    action: '<button class="btn btn-primary" type="button" data-action="project-create"><i class="bi bi-plus-lg me-2" aria-hidden="true"></i>New project</button>',
     content: `
       <div class="row g-3 mb-3">
-        ${[['All projects', '—'], ['In progress', '—'], ['Completed', '—'], ['On hold', '—']].map(([label, count]) => `
-          <div class="col-6 col-xl-3"><div class="card project-stat"><span>${label}</span><strong>${count}</strong></div></div>
+        ${[['All projects', 'total', 'All projects'], ['In progress', 'in-progress', 'In progress'], ['Completed', 'completed', 'Completed'], ['On hold', 'on-hold', 'On hold']].map(([label, key, accessibleLabel]) => `
+          <div class="col-6 col-xl-3"><div class="card project-stat"><span>${label}</span><strong data-project-count="${key}" aria-label="${accessibleLabel}">—</strong></div></div>
         `).join('')}
       </div>
       <section class="card content-card">
-        <div class="card-body border-bottom"><div class="row g-2"><div class="col-12 col-lg-6"><label class="visually-hidden" for="project-search">Search projects</label><div class="input-group"><span class="input-group-text bg-white"><i class="bi bi-search" aria-hidden="true"></i></span><input id="project-search" class="form-control" type="search" placeholder="Search projects or customers"></div></div><div class="col-12 col-sm-6 col-lg-3"><label class="visually-hidden" for="project-status">Filter projects by status</label><select id="project-status" class="form-select"><option>All statuses</option><option>Not Started</option><option>In Progress</option><option>Completed</option><option>On Hold</option></select></div></div></div>
-        ${table(['Project', 'Customer', 'Owner', 'Start date', 'End date', 'Progress', 'Status'], 'No projects yet', 'Projects created from approved applications will appear here.', 'bi-kanban')}
+        <div class="card-body border-bottom"><div class="row g-2"><div class="col-12 col-lg-6"><label class="visually-hidden" for="project-search">Search projects</label><div class="input-group"><span class="input-group-text bg-white"><i class="bi bi-search" aria-hidden="true"></i></span><input id="project-search" class="form-control" type="search" placeholder="Search projects or customers"></div></div><div class="col-12 col-sm-6 col-lg-3"><label class="visually-hidden" for="project-status">Filter projects by status</label><select class="form-select" id="project-status"><option value="">All statuses</option><option>Not Started</option><option>In Progress</option><option>Completed</option><option>On Hold</option></select></div></div></div>
+        <div id="projects-loading" class="text-muted small p-3" role="status" aria-live="polite">Loading projects…</div>
+        <div id="projects-error" class="alert alert-danger m-3 d-none" role="alert"></div>
+        <div id="projects-empty" class="d-none">${emptyState('bi-kanban', 'No projects yet', 'Create a project from one of your approved applications.')}</div>
+        <div id="projects-filter-empty" class="text-muted small text-center p-4 d-none">No projects match these filters.</div>
+        <div class="table-responsive">
+          <table class="table align-middle data-table">
+            <thead><tr>${['Project', 'Customer', 'Owner', 'Start date', 'End date', 'Progress', 'Status', ''].map((column) => `<th scope="col">${column}</th>`).join('')}</tr></thead>
+            <tbody id="projects-body"></tbody>
+          </table>
+        </div>
       </section>
+      <div class="modal fade" id="project-modal" tabindex="-1" aria-labelledby="project-modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+          <div class="modal-content">
+            <form id="project-form">
+              <div class="modal-header">
+                <div><h2 class="modal-title fs-5" id="project-modal-title">New project</h2><p id="project-modal-description" class="text-muted small mb-0">Start a project from an approved funding application.</p></div>
+                <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <div id="project-form-error" class="alert alert-danger d-none" role="alert"></div>
+                <div id="project-options-empty" class="alert alert-info d-none" role="status"></div>
+                <div id="project-application-field" class="mb-3"><label class="form-label" for="project-application">Approved application</label><select class="form-select" id="project-application" name="applicationId" required><option value="">Choose an application</option></select><div class="form-text">The project will inherit the application's customer and owner.</div></div>
+                <div class="mb-3"><label class="form-label" for="project-name">Project name</label><input class="form-control" id="project-name" name="name" maxlength="200" required></div>
+                <div class="row g-3">
+                  <div class="col-md-6"><label class="form-label" for="project-start-date">Start date</label><input class="form-control" id="project-start-date" name="startDate" type="date"></div>
+                  <div class="col-md-6"><label class="form-label" for="project-end-date">End date</label><input class="form-control" id="project-end-date" name="endDate" type="date"></div>
+                </div>
+                <div id="project-edit-fields" class="row g-3 mt-0 d-none">
+                  <div class="col-md-6"><label class="form-label" for="project-edit-status">Status</label><select class="form-select" id="project-edit-status" name="status"><option>Not Started</option><option>In Progress</option><option>Completed</option><option>On Hold</option></select></div>
+                  <div class="col-md-6"><label class="form-label" for="project-progress">Progress (%)</label><input class="form-control" id="project-progress" name="progress" type="number" min="0" max="100" step="1"></div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button class="btn btn-light border" type="button" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" type="submit"><i class="bi bi-check-lg me-1" aria-hidden="true"></i><span id="project-submit-label">Create project</span></button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     `,
   },
   documents: {

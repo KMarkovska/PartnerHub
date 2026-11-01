@@ -5,6 +5,7 @@ import '../css/style.css';
 import { setupAdminPage } from './components/admin.js';
 import { setupApplicationsPage } from './components/applications.js';
 import { setupCustomersPage } from './components/customers.js';
+import { setupProjectsPage } from './components/projects.js';
 import { renderLayout } from './components/layout.js';
 import { renderAuthPage, renderPasswordRecoveryPage } from './components/pages.js';
 import {
@@ -311,6 +312,9 @@ async function setupProtectedPage(protectedPageId) {
   }
   if (protectedPageId === 'customers') {
     setupCustomersPage(identity.user.id);
+  }
+  if (protectedPageId === 'projects') {
+    setupProjectsPage();
   }
 
   const query = new URLSearchParams(window.location.search);
