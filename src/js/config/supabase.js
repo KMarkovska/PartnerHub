@@ -16,17 +16,3 @@ export const supabase = createClient(supabaseUrl, supabasePublishableKey, {
     detectSessionInUrl: true,
   },
 });
-
-export async function verifySupabaseConnection() {
-  const response = await fetch(`${supabaseUrl}/auth/v1/settings`, {
-    headers: { apikey: supabasePublishableKey },
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      `Could not connect to Supabase (HTTP ${response.status}). Check the project URL and publishable key.`,
-    );
-  }
-
-  return true;
-}

@@ -14,7 +14,7 @@ import {
   signUp,
   updatePassword,
 } from './services/auth.service.js';
-import { supabase, verifySupabaseConnection } from './config/supabase.js';
+import { supabase } from './config/supabase.js';
 
 const pageId = document.body.dataset.page;
 const authPages = new Set(['login', 'register']);
@@ -126,7 +126,6 @@ async function setupAuthForm(formPage) {
   const confirmPassword = document.getElementById('confirm-password');
   const fullName = document.getElementById('full-name');
   const submitButton = form.querySelector('button[type="submit"]');
-  const verifyButton = document.getElementById('verify-supabase-connection');
 
   const validateFields = () => {
     if (fullName) {
@@ -148,22 +147,6 @@ async function setupAuthForm(formPage) {
   password.addEventListener('input', validateFields);
   confirmPassword?.addEventListener('input', validateFields);
   form.addEventListener('input', () => hideNotice(notice));
-
-  verifyButton.addEventListener('click', async () => {
-    verifyButton.disabled = true;
-    verifyButton.setAttribute('aria-busy', 'true');
-    hideNotice(notice);
-
-    try {
-      await verifySupabaseConnection();
-      showNotice(notice, 'success', 'Successfully connected to the Supabase project.');
-    } catch (error) {
-      showNotice(notice, 'danger', getErrorMessage(error, 'Could not verify the Supabase connection.'));
-    } finally {
-      verifyButton.disabled = false;
-      verifyButton.removeAttribute('aria-busy');
-    }
-  });
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();

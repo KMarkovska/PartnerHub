@@ -34,8 +34,6 @@ Open the local URL printed by Vite. The root page takes you to the sign-in scree
 
 Sign-in, account creation, session persistence, protected pages, profile loading, role-based navigation, administrator-only routing, and logout use Supabase Auth and the `profiles` table. New accounts receive the database's default `user` role through the profile trigger; registration never accepts a role. Supabase RLS and database functions remain the authority for data access. The Administration page uses Supabase for its user list, access changes, and metrics. Other database-backed page data and file upload/download workflows are not implemented yet.
 
-To verify project connectivity, open the sign-in or registration page and select **Test Supabase connection**. The check calls the Supabase Auth settings endpoint using the configured publishable key and reports success or a sanitized HTTP error without displaying the key.
-
 ## Authentication end-to-end testing
 
 Browser end-to-end automation is not configured in this repository. `npm run test:db` runs pgTAP authorization tests, not browser registration, email, or session flows. Do not treat a successful build or pgTAP run as proof that the browser authentication flows passed.
