@@ -319,14 +319,49 @@ export const pages = {
     title: 'Funding programs',
     subtitle: 'Review available programs and eligibility requirements.',
     icon: 'bi-award',
-    action: actionButton('New funding program'),
+    action: '<button class="btn btn-primary" type="button" data-action="program-create"><i class="bi bi-plus-lg me-2" aria-hidden="true"></i>New funding program</button>',
     actionAdminOnly: true,
     content: `
-      <div class="alert alert-info d-flex gap-2 align-items-start" role="status"><i class="bi bi-info-circle mt-1" aria-hidden="true"></i><div>Funding program data is not connected yet. Supabase restricts program management to administrators and allows regular users to view active programs.</div></div>
+      <div class="alert alert-info d-flex gap-2 align-items-start" role="status"><i class="bi bi-info-circle mt-1" aria-hidden="true"></i><div>Administrators can create, edit, and deactivate funding programs. Regular users can view active programs.</div></div>
       <section class="card content-card">
-        <div class="card-body border-bottom"><div class="row g-2"><div class="col-12 col-lg-6"><label class="visually-hidden" for="program-search">Search funding programs</label><div class="input-group"><span class="input-group-text bg-white"><i class="bi bi-search" aria-hidden="true"></i></span><input id="program-search" class="form-control" type="search" placeholder="Search funding programs"></div></div><div class="col-12 col-sm-6 col-lg-3"><label class="visually-hidden" for="program-status">Filter funding programs</label><select id="program-status" class="form-select"><option>All programs</option><option>Active</option><option>Inactive</option></select></div></div></div>
-        ${table(['Program', 'Description', 'Maximum funding', 'Eligibility', 'Status', ''], 'No funding programs yet', 'Available funding opportunities will appear here when connected.', 'bi-award')}
+        <div class="card-body border-bottom"><div class="row g-2"><div class="col-12 col-lg-6"><label class="visually-hidden" for="program-search">Search funding programs</label><div class="input-group"><span class="input-group-text bg-white"><i class="bi bi-search" aria-hidden="true"></i></span><input id="program-search" class="form-control" type="search" placeholder="Search funding programs"></div></div><div class="col-12 col-sm-6 col-lg-3"><label class="visually-hidden" for="program-status">Filter funding programs</label><select id="program-status" class="form-select"><option value="">All programs</option><option value="active">Active</option><option value="inactive">Inactive</option></select></div></div></div>
+        <div id="programs-loading" class="text-muted small p-3" role="status" aria-live="polite">Loading funding programs…</div>
+        <div id="programs-error" class="alert alert-danger d-none m-3" role="alert"></div>
+        <div id="programs-empty" class="d-none">${emptyState('bi-award', 'No funding programs yet', 'Available funding opportunities will appear here.')}</div>
+        <div id="programs-filter-empty" class="text-muted small text-center p-4 d-none" role="status">No funding programs match these filters.</div>
+        <div class="table-responsive">
+          <table class="table align-middle data-table">
+            <thead><tr>${['Program', 'Description', 'Maximum funding', 'Eligibility', 'Status', ''].map((column) => `<th scope="col">${column}</th>`).join('')}</tr></thead>
+            <tbody id="programs-body"></tbody>
+          </table>
+        </div>
       </section>
+      <div class="modal fade" id="program-modal" tabindex="-1" aria-labelledby="program-modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+          <div class="modal-content">
+            <form id="program-form">
+              <div class="modal-header">
+                <div><h2 class="modal-title fs-5" id="program-modal-title">New funding program</h2><p class="text-muted small mb-0">Program changes are saved to the shared workspace.</p></div>
+                <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <div id="program-form-error" class="alert alert-danger d-none" role="alert"></div>
+                <div class="mb-3"><label class="form-label" for="program-name">Program name</label><input class="form-control" id="program-name" name="name" maxlength="160" required></div>
+                <div class="mb-3"><label class="form-label" for="program-description">Description</label><textarea class="form-control" id="program-description" name="description" rows="3"></textarea></div>
+                <div class="row g-3 mb-3">
+                  <div class="col-sm-8"><label class="form-label" for="program-maximum">Maximum funding</label><input class="form-control" id="program-maximum" name="maxAmount" type="number" min="0.01" max="9999999999.99" step="0.01" required></div>
+                  <div class="col-sm-4"><label class="form-label" for="program-currency">Currency</label><input class="form-control text-uppercase" id="program-currency" name="currency" type="text" minlength="3" maxlength="3" pattern="[A-Za-z]{3}" placeholder="EUR" required><div class="form-text">3-letter currency code</div></div>
+                </div>
+                <div><label class="form-label" for="program-eligibility">Eligibility information</label><textarea class="form-control" id="program-eligibility" name="eligibility" rows="3"></textarea></div>
+              </div>
+              <div class="modal-footer">
+                <button class="btn btn-light border" type="button" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" type="submit"><i class="bi bi-check-lg me-1" aria-hidden="true"></i><span id="program-submit-label">Create program</span></button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     `,
   },
 };

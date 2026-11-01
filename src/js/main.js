@@ -6,6 +6,7 @@ import { setupAdminPage } from './components/admin.js';
 import { setupApplicationsPage } from './components/applications.js';
 import { setupCustomersPage } from './components/customers.js';
 import { setupDocumentsPage } from './components/documents.js';
+import { setupProgramsPage } from './components/programs.js';
 import { setupProjectsPage } from './components/projects.js';
 import { renderLayout } from './components/layout.js';
 import { renderAuthPage, renderPasswordRecoveryPage } from './components/pages.js';
@@ -319,6 +320,9 @@ async function setupProtectedPage(protectedPageId) {
   }
   if (protectedPageId === 'documents') {
     setupDocumentsPage(identity.user.id);
+  }
+  if (protectedPageId === 'programs') {
+    setupProgramsPage(identity.profile.role);
   }
 
   const query = new URLSearchParams(window.location.search);
