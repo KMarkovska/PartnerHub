@@ -120,6 +120,25 @@ export const pages = {
           </div>
         </div>
       </div>
+      <div class="modal fade" id="application-status-confirmation" tabindex="-1" aria-labelledby="application-status-confirm-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <div><h2 class="modal-title fs-5" id="application-status-confirm-title">Confirm status change</h2><p class="text-muted small mb-0" id="application-status-confirm-description">Review this change before continuing.</p></div>
+              <button class="btn-close" id="application-status-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div id="application-status-confirmation-error" class="alert alert-danger d-none" role="alert"></div>
+              <p class="mb-2">Application</p>
+              <p class="fw-semibold text-break mb-0" id="application-status-confirm-name"></p>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-light border" id="application-status-cancel" type="button" data-bs-dismiss="modal">Cancel</button>
+              <button class="btn btn-primary" id="application-status-confirm" type="button">Confirm</button>
+            </div>
+          </div>
+        </div>
+      </div>
     `,
   },
   customers: {

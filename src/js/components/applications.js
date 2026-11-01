@@ -10,6 +10,12 @@ export function setupApplicationsPage(currentUserId, role) {
   const isAdmin = role === 'admin';
   const modalElement = document.getElementById('application-modal');
   const modal = Modal.getOrCreateInstance(modalElement);
+  const statusConfirmationElement = document.getElementById('application-status-confirmation');
+  const statusConfirmationModal = Modal.getOrCreateInstance(statusConfirmationElement);
+  const statusConfirmationButton = document.getElementById('application-status-confirm');
+  const statusConfirmationCancel = document.getElementById('application-status-cancel');
+  const statusConfirmationClose = document.getElementById('application-status-close');
+  const statusConfirmationError = document.getElementById('application-status-confirmation-error');
   const form = document.getElementById('application-form');
   const formError = document.getElementById('application-form-error');
   const customersSelect = document.getElementById('application-customer-input');
@@ -24,6 +30,8 @@ export function setupApplicationsPage(currentUserId, role) {
   let applications = [];
   let customers = [];
   let programs = [];
+  let pendingStatusChange = null;
+  let isUpdatingStatus = false;
   submitButton.disabled = true;
 
   createButton.addEventListener('click', () => {
@@ -36,28 +44,61 @@ export function setupApplicationsPage(currentUserId, role) {
   programsSelect.addEventListener('change', updateProgramLimit);
   document.getElementById('applications-body').addEventListener('click', async (event) => {
     const button = event.target.closest('[data-application-status]');
-    if (!button) return;
+    if (!button || button.disabled) return;
 
     const application = applications.find((item) => item.id === button.dataset.applicationStatus);
     const nextStatus = button.dataset.nextStatus;
     if (!application || !canChangeStatus(application, nextStatus)) return;
 
-    if (nextStatus === 'Submitted' && !window.confirm('Submit this draft to the administrator for review?')) {
-      return;
-    }
-    if (['Approved', 'Rejected'].includes(nextStatus)
-      && !window.confirm(`Are you sure you want to mark "${application.title}" as ${nextStatus.toLowerCase()}?`)) {
+    if (['Submitted', 'Approved', 'Rejected'].includes(nextStatus)) {
+      pendingStatusChange = { application, nextStatus, button };
+      document.getElementById('application-status-confirm-title').textContent = nextStatus === 'Submitted'
+        ? 'Submit application for review?'
+        : `Confirm ${nextStatus.toLowerCase()} decision`;
+      document.getElementById('application-status-confirm-description').textContent = nextStatus === 'Submitted'
+        ? 'The administrator will be able to review this application after submission.'
+        : `This will mark the application as ${nextStatus.toLowerCase()}.`;
+      document.getElementById('application-status-confirm-name').textContent = application.title;
+      statusConfirmationButton.textContent = nextStatus === 'Submitted'
+        ? 'Submit for review'
+        : nextStatus;
+      statusConfirmationButton.classList.toggle('btn-danger', nextStatus === 'Rejected');
+      statusConfirmationButton.classList.toggle('btn-primary', nextStatus !== 'Rejected');
+      statusConfirmationError.classList.add('d-none');
+      statusConfirmationError.textContent = '';
+      statusConfirmationModal.show();
       return;
     }
 
-    button.disabled = true;
+    await saveStatusChange(application, nextStatus, button);
+  });
+  statusConfirmationElement.addEventListener('hide.bs.modal', (event) => {
+    if (isUpdatingStatus) event.preventDefault();
+  });
+  statusConfirmationElement.addEventListener('hidden.bs.modal', () => {
+    pendingStatusChange = null;
+  });
+  statusConfirmationButton.addEventListener('click', async () => {
+    if (!pendingStatusChange || isUpdatingStatus) return;
+
+    const { application, nextStatus, button } = pendingStatusChange;
+    isUpdatingStatus = true;
+    setStatusConfirmationBusy(true);
     try {
       await updateApplicationStatus(application.id, nextStatus);
+      pendingStatusChange = null;
+      isUpdatingStatus = false;
+      setStatusConfirmationBusy(false);
+      statusConfirmationModal.hide();
       showPageNotice(`Application status changed to ${nextStatus}.`, 'success');
       await loadApplications();
     } catch (error) {
-      showPageNotice(`Could not change the application status: ${getErrorMessage(error, 'Please try again.')}`, 'danger');
+      statusConfirmationError.textContent = `Could not change the application status: ${getErrorMessage(error, 'Please try again.')}`;
+      statusConfirmationError.classList.remove('d-none');
       button.disabled = false;
+    } finally {
+      isUpdatingStatus = false;
+      setStatusConfirmationBusy(false);
     }
   });
 
@@ -206,6 +247,36 @@ export function setupApplicationsPage(currentUserId, role) {
         && ['Under Review', 'Approved', 'Rejected'].includes(nextStatus))
       || (application.status === 'Under Review'
         && ['Approved', 'Rejected'].includes(nextStatus));
+  }
+
+  async function saveStatusChange(application, nextStatus, button) {
+    button.disabled = true;
+    try {
+      await updateApplicationStatus(application.id, nextStatus);
+      showPageNotice(`Application status changed to ${nextStatus}.`, 'success');
+      await loadApplications();
+    } catch (error) {
+      showPageNotice(`Could not change the application status: ${getErrorMessage(error, 'Please try again.')}`, 'danger');
+      button.disabled = false;
+    }
+  }
+
+  function setStatusConfirmationBusy(isBusy) {
+    statusConfirmationButton.disabled = isBusy;
+    statusConfirmationCancel.disabled = isBusy;
+    statusConfirmationClose.disabled = isBusy;
+    if (pendingStatusChange?.button) {
+      pendingStatusChange.button.disabled = isBusy;
+    }
+    if (isBusy) {
+      statusConfirmationButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Updating…';
+    } else {
+      statusConfirmationButton.textContent = {
+        Submitted: 'Submit for review',
+        Approved: 'Approve',
+        Rejected: 'Reject',
+      }[pendingStatusChange?.nextStatus] ?? 'Confirm';
+    }
   }
 
   function filterApplications() {
