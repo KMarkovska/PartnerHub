@@ -229,12 +229,43 @@ export const pages = {
     title: 'Documents',
     subtitle: 'Keep application and project files organized.',
     icon: 'bi-folder2-open',
-    action: actionButton('Upload document', 'bi-cloud-arrow-up'),
+    action: '<button class="btn btn-primary" type="button" data-action="document-upload"><i class="bi bi-cloud-arrow-up me-2" aria-hidden="true"></i>Upload document</button>',
     content: `
       <section class="card content-card">
-        <div class="card-body border-bottom"><div class="row g-2"><div class="col-12 col-lg-6"><label class="visually-hidden" for="document-search">Search documents</label><div class="input-group"><span class="input-group-text bg-white"><i class="bi bi-search" aria-hidden="true"></i></span><input id="document-search" class="form-control" type="search" placeholder="Search documents"></div></div><div class="col-12 col-sm-6 col-lg-3"><label class="visually-hidden" for="document-type">Filter documents by type</label><select id="document-type" class="form-select"><option>All documents</option><option>Applications</option><option>Projects</option></select></div></div></div>
-        ${table(['Document', 'Related to', 'File type', 'Uploaded by', 'Upload date', ''], 'No documents yet', 'Files associated with applications and projects will appear here.', 'bi-folder2-open')}
+        <div class="card-body border-bottom"><div class="row g-2"><div class="col-12 col-lg-6"><label class="visually-hidden" for="document-search">Search documents</label><div class="input-group"><span class="input-group-text bg-white"><i class="bi bi-search" aria-hidden="true"></i></span><input id="document-search" class="form-control" type="search" placeholder="Search documents"></div></div><div class="col-12 col-sm-6 col-lg-3"><label class="visually-hidden" for="document-type">Filter documents by type</label><select id="document-type" class="form-select"><option value="">All documents</option><option value="application">Applications</option><option value="project">Projects</option></select></div></div></div>
+        <div id="documents-loading" class="text-muted small p-3" role="status" aria-live="polite">Loading documents…</div>
+        <div id="documents-error" class="alert alert-danger m-3 d-none" role="alert"></div>
+        <div id="documents-empty" class="d-none">${emptyState('bi-folder2-open', 'No documents yet', 'Upload a file and associate it with an application or project.')}</div>
+        <div id="documents-filter-empty" class="text-muted small text-center p-4 d-none">No documents match these filters.</div>
+        <div class="table-responsive">
+          <table class="table align-middle data-table">
+            <thead><tr>${['Document', 'Related to', 'File type', 'Uploaded by', 'Upload date', ''].map((column) => `<th scope="col">${column}</th>`).join('')}</tr></thead>
+            <tbody id="documents-body"></tbody>
+          </table>
+        </div>
       </section>
+      <div class="modal fade" id="document-modal" tabindex="-1" aria-labelledby="document-modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <form id="document-form">
+              <div class="modal-header">
+                <div><h2 class="modal-title fs-5" id="document-modal-title">Upload document</h2><p class="text-muted small mb-0">Files are stored privately and access follows your workspace permissions.</p></div>
+                <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <div id="document-form-error" class="alert alert-danger d-none" role="alert"></div>
+                <div id="document-options-empty" class="alert alert-info d-none" role="status"></div>
+                <div class="mb-3"><label class="form-label" for="document-parent">Application or project</label><select class="form-select" id="document-parent" name="parent" required><option value="">Choose an application or project</option></select></div>
+                <div><label class="form-label" for="document-file">File</label><input class="form-control" id="document-file" name="file" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.jpg,.jpeg,.png" required><div class="form-text">PDF, Office, text, CSV, JPEG, or PNG. Maximum 20 MB.</div></div>
+              </div>
+              <div class="modal-footer">
+                <button class="btn btn-light border" type="button" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" type="submit"><i class="bi bi-cloud-arrow-up me-1" aria-hidden="true"></i><span id="document-submit-label">Upload document</span></button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     `,
   },
   admin: {
