@@ -319,7 +319,7 @@ async function setupProtectedPage(protectedPageId) {
     setupProjectsPage();
   }
   if (protectedPageId === 'documents') {
-    setupDocumentsPage(identity.user.id);
+    setupDocumentsPage(identity.user.id, identity.profile.role);
   }
   if (protectedPageId === 'programs') {
     setupProgramsPage(identity.profile.role);

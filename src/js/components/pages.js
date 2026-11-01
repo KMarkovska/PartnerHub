@@ -239,7 +239,7 @@ export const pages = {
         <div id="documents-filter-empty" class="text-muted small text-center p-4 d-none">No documents match these filters.</div>
         <div class="table-responsive">
           <table class="table align-middle data-table">
-            <thead><tr>${['Document', 'Related to', 'File type', 'Uploaded by', 'Upload date', ''].map((column) => `<th scope="col">${column}</th>`).join('')}</tr></thead>
+            <thead><tr>${['Document', 'Related to', 'File type', 'Uploaded by', 'Upload date', 'Actions'].map((column) => `<th scope="col">${column}</th>`).join('')}</tr></thead>
             <tbody id="documents-body"></tbody>
           </table>
         </div>

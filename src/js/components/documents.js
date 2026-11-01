@@ -1,6 +1,7 @@
 import { Modal } from 'bootstrap';
 import {
   downloadDocument,
+  deleteDocument,
   getDocuments,
   getDocumentParents,
   getSupportedMimeType,
@@ -9,7 +10,8 @@ import {
 
 const maximumFileSize = 20 * 1024 * 1024;
 
-export function setupDocumentsPage(currentUserId) {
+export function setupDocumentsPage(currentUserId, role) {
+  const isAdmin = role === 'admin';
   const modal = Modal.getOrCreateInstance(document.getElementById('document-modal'));
   const form = document.getElementById('document-form');
   const formError = document.getElementById('document-form-error');
@@ -33,13 +35,40 @@ export function setupDocumentsPage(currentUserId) {
   typeFilter.addEventListener('change', filterDocuments);
   fileInput.addEventListener('change', validateFile);
   document.getElementById('documents-body').addEventListener('click', async (event) => {
-    const button = event.target.closest('[data-document-download]');
+    const button = event.target.closest('[data-document-download], [data-document-delete]');
     if (!button) return;
+
+    const documentRecord = documents.find((item) => item.id === (
+      button.dataset.documentDownload ?? button.dataset.documentDelete
+    ));
+    if (!documentRecord) {
+      showPageNotice('This document is no longer available. Reload the page and try again.', 'danger');
+      return;
+    }
+
+    if (button.matches('[data-document-delete]')) {
+      if (!isAdmin) return;
+      const confirmed = window.confirm(
+        `Permanently delete "${documentRecord.file_name}" and its stored file? This cannot be undone.`,
+      );
+      if (!confirmed) return;
+
+      button.disabled = true;
+      try {
+        await deleteDocument(documentRecord.id, documentRecord.storage_path);
+        showPageNotice('Document permanently deleted.', 'success');
+        await loadDocuments();
+      } catch (error) {
+        showPageNotice(`Could not delete the document: ${getErrorMessage(error, 'Please try again.')}`, 'danger');
+        await loadDocuments();
+      } finally {
+        button.disabled = false;
+      }
+      return;
+    }
 
     button.disabled = true;
     try {
-      const documentRecord = documents.find((item) => item.id === button.dataset.documentDownload);
-      if (!documentRecord) throw new Error('This document is no longer available.');
       const blob = await downloadDocument(documentRecord.storage_path, documentRecord.file_name);
       const objectUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -160,7 +189,10 @@ export function setupDocumentsPage(currentUserId) {
         <td>${escapeHtml(documentRecord.file_type)}</td>
         <td>${escapeHtml(documentRecord.uploader_name)}</td>
         <td>${formatDate(documentRecord.created_at)}</td>
-        <td><button class="btn btn-sm btn-outline-primary" type="button" data-document-download="${escapeHtml(documentRecord.id)}"><i class="bi bi-download me-1" aria-hidden="true"></i>Download</button></td>
+        <td><div class="d-flex flex-wrap gap-2">
+          <button class="btn btn-sm btn-outline-primary" type="button" data-document-download="${escapeHtml(documentRecord.id)}"><i class="bi bi-download me-1" aria-hidden="true"></i>Download</button>
+          ${isAdmin ? `<button class="btn btn-sm btn-outline-danger" type="button" data-document-delete="${escapeHtml(documentRecord.id)}" aria-label="Delete ${escapeHtml(documentRecord.file_name)}"><i class="bi bi-trash me-1" aria-hidden="true"></i>Delete</button>` : ''}
+        </div></td>
       </tr>
     `).join('');
   }

@@ -120,6 +120,27 @@ export async function downloadDocument(storagePath, fileName) {
   return data;
 }
 
+export async function deleteDocument(documentId, storagePath) {
+  const { error: storageError } = await supabase.storage
+    .from(bucketName)
+    .remove([storagePath]);
+
+  if (storageError) throw storageError;
+
+  const { error: metadataError } = await supabase
+    .from('documents')
+    .delete()
+    .eq('id', documentId)
+    .select('id')
+    .single();
+
+  if (metadataError) {
+    throw new Error(
+      `The file was removed from Storage, but its document record could not be deleted. Retry deleting this entry. ${metadataError.message}`,
+    );
+  }
+}
+
 async function getRecordsByIds(tableName, ids, columns) {
   if (ids.length === 0) return [];
   const { data, error } = await supabase
