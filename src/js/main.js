@@ -426,8 +426,11 @@ function getAuthErrorMessage(error, formPage) {
     return 'Supabase has temporarily limited sign-up emails. Wait before retrying, or configure a custom SMTP provider in your Supabase Auth settings.';
   }
 
-  if (formPage === 'register' && normalizedMessage.includes('password should be at least')) {
-    return 'Use a password with at least 8 characters, then try again.';
+  const passwordLengthError = formPage === 'register'
+    ? normalizedMessage.match(/password should be at least (\d+) characters/)
+    : null;
+  if (passwordLengthError) {
+    return `Supabase requires a password with at least ${passwordLengthError[1]} characters. Please use a longer password and try again.`;
   }
 
   if (formPage === 'register' && normalizedMessage.includes('already registered')) {
