@@ -124,6 +124,7 @@ async function setupAuthForm(formPage) {
   const notice = document.getElementById('auth-notice');
   const password = document.getElementById('password');
   const confirmPassword = document.getElementById('confirm-password');
+  const passwordLength = document.getElementById('password-length');
   const fullName = document.getElementById('full-name');
   const submitButton = form.querySelector('button[type="submit"]');
 
@@ -134,8 +135,13 @@ async function setupAuthForm(formPage) {
       );
     }
 
+    const characterCount = Array.from(password.value).length;
+    if (passwordLength) {
+      passwordLength.textContent = `${characterCount} / 8`;
+    }
+
     password.setCustomValidity(
-      formPage === 'register' && password.value && Array.from(password.value).length < 8
+      formPage === 'register' && password.value && characterCount < 8
         ? 'Use at least 8 characters.'
         : '',
     );
@@ -152,6 +158,7 @@ async function setupAuthForm(formPage) {
   fullName?.addEventListener('input', validateFields);
   password.addEventListener('input', validateFields);
   confirmPassword?.addEventListener('input', validateFields);
+  validateFields();
   form.addEventListener('input', () => hideNotice(notice));
 
   form.addEventListener('submit', async (event) => {
@@ -159,12 +166,12 @@ async function setupAuthForm(formPage) {
     validateFields();
     if (!form.reportValidity()) return;
 
+    const formData = new FormData(form);
     setFormBusy(form, true);
     submitButton.setAttribute('aria-busy', 'true');
     hideNotice(notice);
 
     try {
-      const formData = new FormData(form);
       const email = String(formData.get('email')).trim();
       const passwordValue = String(formData.get('password'));
 
@@ -175,6 +182,13 @@ async function setupAuthForm(formPage) {
         const identity = await getAuthenticatedProfile();
         if (!identity) throw new Error('Your session could not be established. Please sign in again.');
         goToDashboard();
+        return;
+      }
+
+      if (Array.from(passwordValue).length < 8) {
+        password.setCustomValidity('Use at least 8 characters.');
+        setFormBusy(form, false);
+        password.reportValidity();
         return;
       }
 
@@ -198,6 +212,7 @@ async function setupAuthForm(formPage) {
         'Your account was created. Check your email to confirm your address before signing in.',
       );
       form.reset();
+      validateFields();
     } catch (error) {
       if (error instanceof InactiveProfileError) {
         const { error: signOutError } = await signOut();
@@ -419,7 +434,7 @@ function getAuthErrorMessage(error, formPage) {
     ? normalizedMessage.match(/password should be at least (\d+) characters/)
     : null;
   if (passwordLengthError) {
-    return `Supabase requires a password with at least ${passwordLengthError[1]} characters. Please use a longer password and try again.`;
+    return `Supabase received a password shorter than its ${passwordLengthError[1]}-character minimum. PartnerHub requires 8 characters; check the count below and re-enter the password manually.`;
   }
 
   if (formPage === 'register' && normalizedMessage.includes('already registered')) {
