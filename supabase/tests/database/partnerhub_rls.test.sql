@@ -1,6 +1,6 @@
 begin;
 
-select plan(43);
+select plan(48);
 
 select has_table('public', 'profiles', 'profiles table exists');
 select has_table('public', 'customers', 'customers table exists');
@@ -146,6 +146,10 @@ values
    '71000000-0000-4000-8000-000000000002',
    'RLS project two');
 
+update public.applications
+set status = 'Draft'
+where id = 'a2000000-0000-4000-8000-000000000001';
+
 insert into public.milestones (id, project_id, title)
 values
   ('62000000-0000-4000-8000-000000000001',
@@ -228,6 +232,38 @@ select is(
   (select count(*)::integer from public.applications),
   1,
   'regular users see only their own applications'
+);
+
+select throws_ok(
+  $$insert into public.applications (
+      id, customer_id, program_id, owner_id, title, requested_amount, status
+    )
+    values (
+      'a2000000-0000-4000-8000-000000000003',
+      'c2000000-0000-4000-8000-000000000001',
+      'f2000000-0000-4000-8000-000000000001',
+      '71000000-0000-4000-8000-000000000001',
+      'Unauthorized initial status', 100, 'Submitted'
+    )$$,
+  '42501',
+  null,
+  'regular users cannot create applications directly in submitted status'
+);
+
+select lives_ok(
+  $$update public.applications
+    set status = 'Submitted'
+    where id = 'a2000000-0000-4000-8000-000000000001'$$,
+  'regular users can submit their own draft applications'
+);
+
+select throws_ok(
+  $$update public.applications
+    set status = 'Under Review'
+    where id = 'a2000000-0000-4000-8000-000000000001'$$,
+  '42501',
+  null,
+  'regular users cannot change submitted applications to review statuses'
 );
 
 select is(
@@ -337,6 +373,20 @@ select is(
   (select count(*)::integer from public.applications),
   2,
   'active administrators can view all applications'
+);
+
+select lives_ok(
+  $$update public.applications
+    set status = 'Under Review'
+    where id = 'a2000000-0000-4000-8000-000000000001'$$,
+  'administrators can move submitted applications into review'
+);
+
+select lives_ok(
+  $$update public.applications
+    set status = 'Approved'
+    where id = 'a2000000-0000-4000-8000-000000000001'$$,
+  'administrators can approve applications under review'
 );
 
 select is(

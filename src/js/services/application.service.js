@@ -6,6 +6,7 @@ export async function getApplications() {
     .select(`
       id,
       customer_id,
+      owner_id,
       title,
       requested_amount,
       status,
@@ -48,4 +49,18 @@ export async function createApplication(application) {
 
   if (error) throw error;
   return data;
+}
+
+export async function updateApplicationStatus(applicationId, status) {
+  const { data, error } = await supabase
+    .from('applications')
+    .update({ status })
+    .eq('id', applicationId)
+    .select('id')
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) {
+    throw new Error('Application status was not changed. It may no longer be accessible.');
+  }
 }

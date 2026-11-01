@@ -85,7 +85,7 @@ export const pages = {
         <div id="applications-filter-empty" class="text-muted small text-center p-4 d-none">No applications match these filters.</div>
         <div class="table-responsive">
           <table class="table align-middle data-table">
-            <thead><tr>${['Application', 'Customer', 'Funding program', 'Requested amount', 'Created', 'Status'].map((column) => `<th scope="col">${column}</th>`).join('')}</tr></thead>
+            <thead><tr>${['Application', 'Customer', 'Funding program', 'Requested amount', 'Created', 'Status', 'Actions'].map((column) => `<th scope="col">${column}</th>`).join('')}</tr></thead>
             <tbody id="applications-body"></tbody>
           </table>
         </div>
@@ -95,7 +95,7 @@ export const pages = {
           <div class="modal-content">
             <form id="application-form">
               <div class="modal-header">
-                <div><h2 class="modal-title fs-5" id="application-modal-title">New funding application</h2><p class="text-muted small mb-0">Start a draft request for one of your customers.</p></div>
+                <div><h2 class="modal-title fs-5" id="application-modal-title">New funding application</h2><p class="text-muted small mb-0">Create a draft, then submit it for administrator review.</p></div>
                 <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
               <div class="modal-body">

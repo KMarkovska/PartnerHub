@@ -310,7 +310,7 @@ async function setupProtectedPage(protectedPageId) {
     setupAdminPage(identity.user.id);
   }
   if (protectedPageId === 'applications') {
-    setupApplicationsPage(identity.user.id);
+    setupApplicationsPage(identity.user.id, identity.profile.role);
   }
   if (protectedPageId === 'customers') {
     setupCustomersPage(identity.user.id);

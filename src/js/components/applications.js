@@ -3,9 +3,11 @@ import {
   createApplication,
   getApplicationOptions,
   getApplications,
+  updateApplicationStatus,
 } from '../services/application.service.js';
 
-export function setupApplicationsPage(currentUserId) {
+export function setupApplicationsPage(currentUserId, role) {
+  const isAdmin = role === 'admin';
   const modalElement = document.getElementById('application-modal');
   const modal = Modal.getOrCreateInstance(modalElement);
   const form = document.getElementById('application-form');
@@ -32,6 +34,32 @@ export function setupApplicationsPage(currentUserId) {
   statusFilter.addEventListener('change', filterApplications);
   customerFilter.addEventListener('change', filterApplications);
   programsSelect.addEventListener('change', updateProgramLimit);
+  document.getElementById('applications-body').addEventListener('click', async (event) => {
+    const button = event.target.closest('[data-application-status]');
+    if (!button) return;
+
+    const application = applications.find((item) => item.id === button.dataset.applicationStatus);
+    const nextStatus = button.dataset.nextStatus;
+    if (!application || !canChangeStatus(application, nextStatus)) return;
+
+    if (nextStatus === 'Submitted' && !window.confirm('Submit this draft to the administrator for review?')) {
+      return;
+    }
+    if (['Approved', 'Rejected'].includes(nextStatus)
+      && !window.confirm(`Are you sure you want to mark "${application.title}" as ${nextStatus.toLowerCase()}?`)) {
+      return;
+    }
+
+    button.disabled = true;
+    try {
+      await updateApplicationStatus(application.id, nextStatus);
+      showPageNotice(`Application status changed to ${nextStatus}.`, 'success');
+      await loadApplications();
+    } catch (error) {
+      showPageNotice(`Could not change the application status: ${getErrorMessage(error, 'Please try again.')}`, 'danger');
+      button.disabled = false;
+    }
+  });
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -137,8 +165,47 @@ export function setupApplicationsPage(currentUserId) {
         <td>${formatCurrency(application.requested_amount, application.program?.currency)}</td>
         <td>${formatDate(application.created_at)}</td>
         <td><span class="badge ${statusBadgeClass(application.status)}">${escapeHtml(application.status)}</span></td>
+        <td><div class="d-flex flex-wrap gap-2">${renderStatusActions(application)}</div></td>
       </tr>
     `).join('');
+  }
+
+  function renderStatusActions(application) {
+    const actions = [];
+    if (isAdmin) {
+      if (application.status === 'Submitted') {
+        actions.push(['Under Review', 'Start review', 'btn-outline-primary']);
+        actions.push(['Approved', 'Approve', 'btn-outline-success']);
+        actions.push(['Rejected', 'Reject', 'btn-outline-danger']);
+      } else if (application.status === 'Under Review') {
+        actions.push(['Approved', 'Approve', 'btn-outline-success']);
+        actions.push(['Rejected', 'Reject', 'btn-outline-danger']);
+      }
+    } else if (
+      application.owner_id === currentUserId
+      && application.status === 'Draft'
+    ) {
+      actions.push(['Submitted', 'Submit for review', 'btn-outline-primary']);
+    }
+
+    return actions.map(([status, label, style]) => `
+      <button class="btn btn-sm ${style}" type="button"
+              data-application-status="${escapeHtml(application.id)}"
+              data-next-status="${status}">${label}</button>
+    `).join('');
+  }
+
+  function canChangeStatus(application, nextStatus) {
+    if (!isAdmin) {
+      return application.owner_id === currentUserId
+        && application.status === 'Draft'
+        && nextStatus === 'Submitted';
+    }
+
+    return (application.status === 'Submitted'
+        && ['Under Review', 'Approved', 'Rejected'].includes(nextStatus))
+      || (application.status === 'Under Review'
+        && ['Approved', 'Rejected'].includes(nextStatus));
   }
 
   function filterApplications() {
