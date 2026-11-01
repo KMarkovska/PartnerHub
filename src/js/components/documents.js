@@ -21,6 +21,10 @@ export function setupDocumentsPage(currentUserId) {
   let documents = [];
   let parents = { applications: [], projects: [] };
 
+  parentSelect.disabled = true;
+  fileInput.disabled = true;
+  submitButton.disabled = true;
+
   document.querySelector('[data-action="document-upload"]').addEventListener('click', () => {
     hideFormError();
     modal.show();
@@ -94,14 +98,17 @@ export function setupDocumentsPage(currentUserId) {
       const availableCount = parents.applications.length + parents.projects.length;
       const emptyPanel = document.getElementById('document-options-empty');
       if (availableCount === 0) {
-        emptyPanel.textContent = 'There are no accessible applications or projects to attach a document to.';
         emptyPanel.classList.remove('d-none');
       } else {
         emptyPanel.classList.add('d-none');
       }
+      parentSelect.disabled = availableCount === 0;
+      fileInput.disabled = availableCount === 0;
       submitButton.disabled = availableCount === 0;
     } catch (error) {
       showFormError(`Could not load applications and projects: ${getErrorMessage(error, 'Please try again.')}`);
+      parentSelect.disabled = true;
+      fileInput.disabled = true;
       submitButton.disabled = true;
     }
   }

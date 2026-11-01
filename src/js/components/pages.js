@@ -254,7 +254,12 @@ export const pages = {
               </div>
               <div class="modal-body">
                 <div id="document-form-error" class="alert alert-danger d-none" role="alert"></div>
-                <div id="document-options-empty" class="alert alert-info d-none" role="status"></div>
+                <div id="document-options-empty" class="alert alert-info d-none" role="status">
+                  No accessible applications or projects are available to attach a document to.
+                  <a href="/src/pages/customers.html">Create a customer</a>, then
+                  <a href="/src/pages/applications.html">create an application</a>. Projects can be
+                  created from approved applications.
+                </div>
                 <div class="mb-3"><label class="form-label" for="document-parent">Application or project</label><select class="form-select" id="document-parent" name="parent" required><option value="">Choose an application or project</option></select></div>
                 <div><label class="form-label" for="document-file">File</label><input class="form-control" id="document-file" name="file" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.jpg,.jpeg,.png" required><div class="form-text">PDF, Office, text, CSV, JPEG, or PNG. Maximum 20 MB.</div></div>
               </div>
