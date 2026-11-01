@@ -147,6 +147,7 @@ async function setupAuthForm(formPage) {
   fullName?.addEventListener('input', validateFields);
   password.addEventListener('input', validateFields);
   confirmPassword?.addEventListener('input', validateFields);
+  form.addEventListener('input', () => hideNotice(notice));
 
   verifyButton.addEventListener('click', async () => {
     verifyButton.disabled = true;
