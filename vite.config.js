@@ -10,6 +10,8 @@ export default defineConfig({
         index: fileURLToPath(new URL('./index.html', import.meta.url)),
         login: page('login'),
         register: page('register'),
+        forgotPassword: page('forgot-password'),
+        resetPassword: page('reset-password'),
         dashboard: page('dashboard'),
         applications: page('applications'),
         customers: page('customers'),

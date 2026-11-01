@@ -22,6 +22,16 @@ export async function signUp(fullName, email, password) {
   });
 }
 
+export async function sendPasswordRecoveryEmail(email) {
+  return supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: new URL('/src/pages/reset-password.html', window.location.origin).toString(),
+  });
+}
+
+export async function updatePassword(password) {
+  return supabase.auth.updateUser({ password });
+}
+
 export async function signOut() {
   return supabase.auth.signOut();
 }

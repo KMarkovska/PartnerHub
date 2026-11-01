@@ -4,13 +4,15 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import '../css/style.css';
 import { setupAdminPage } from './components/admin.js';
 import { renderLayout } from './components/layout.js';
-import { renderAuthPage } from './components/pages.js';
+import { renderAuthPage, renderPasswordRecoveryPage } from './components/pages.js';
 import {
   getAuthenticatedProfile,
   InactiveProfileError,
+  sendPasswordRecoveryEmail,
   signIn,
   signOut,
   signUp,
+  updatePassword,
 } from './services/auth.service.js';
 import { supabase, verifySupabaseConnection } from './config/supabase.js';
 
@@ -22,8 +24,99 @@ if (authPages.has(pageId)) {
   document.title = `${pageId === 'login' ? 'Sign in' : 'Create account'} | PartnerHub`;
   document.getElementById('app').innerHTML = renderAuthPage(pageId);
   await setupAuthForm(pageId);
+} else if (pageId === 'forgot-password') {
+  document.title = 'Reset password | PartnerHub';
+  document.getElementById('app').innerHTML = renderPasswordRecoveryPage('request');
+  setupPasswordRecoveryRequest();
+} else if (pageId === 'reset-password') {
+  document.title = 'Choose a new password | PartnerHub';
+  document.getElementById('app').innerHTML = renderPasswordRecoveryPage('update');
+  await setupPasswordUpdate();
 } else {
   await setupProtectedPage(pageId);
+}
+
+function setupPasswordRecoveryRequest() {
+  const form = document.getElementById('password-recovery-form');
+  const notice = document.getElementById('auth-notice');
+  const submitButton = form.querySelector('button[type="submit"]');
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!form.reportValidity()) return;
+
+    setFormBusy(form, true);
+    submitButton.setAttribute('aria-busy', 'true');
+    hideNotice(notice);
+    try {
+      const email = String(new FormData(form).get('email')).trim();
+      const { error } = await sendPasswordRecoveryEmail(email);
+      if (error) throw error;
+
+      showNotice(
+        notice,
+        'success',
+        'If an account exists for that email, a password reset link has been sent.',
+      );
+      form.reset();
+    } catch (error) {
+      showNotice(notice, 'danger', getErrorMessage(error, 'Could not send a password reset link. Please try again.'));
+    } finally {
+      setFormBusy(form, false);
+      submitButton.removeAttribute('aria-busy');
+    }
+  });
+}
+
+async function setupPasswordUpdate() {
+  const form = document.getElementById('password-recovery-form');
+  const notice = document.getElementById('auth-notice');
+  const password = document.getElementById('password');
+  const confirmPassword = document.getElementById('confirm-password');
+  const submitButton = form.querySelector('button[type="submit"]');
+
+  const { data, error } = await supabase.auth.getSession();
+  if (error) {
+    showNotice(notice, 'danger', getErrorMessage(error, 'Could not verify the password reset session.'));
+    setFormBusy(form, true);
+    return;
+  }
+  if (!data.session) {
+    showNotice(notice, 'warning', 'This password reset link is invalid or expired. Request a new link and try again.');
+    setFormBusy(form, true);
+    return;
+  }
+
+  confirmPassword.addEventListener('input', validatePasswords);
+  password.addEventListener('input', validatePasswords);
+
+  function validatePasswords() {
+    confirmPassword.setCustomValidity(
+      confirmPassword.value && password.value !== confirmPassword.value
+        ? 'Passwords do not match.'
+        : '',
+    );
+  }
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    validatePasswords();
+    if (!form.reportValidity()) return;
+
+    setFormBusy(form, true);
+    submitButton.setAttribute('aria-busy', 'true');
+    hideNotice(notice);
+    try {
+      const { error: updateError } = await updatePassword(password.value);
+      if (updateError) throw updateError;
+      goToDashboard('password-updated=1');
+    } catch (updateError) {
+      showNotice(notice, 'danger', getErrorMessage(updateError, 'Could not update the password. Please request a new link.'));
+    } finally {
+      setFormBusy(form, false);
+      submitButton.removeAttribute('aria-busy');
+    }
+  });
 }
 
 async function setupAuthForm(formPage) {
@@ -213,6 +306,8 @@ async function setupProtectedPage(protectedPageId) {
     showNotice(notice, 'warning', 'The Administration page is available to administrators only.');
   } else if (query.get('welcome') === '1') {
     showNotice(notice, 'success', 'Your account is ready. Welcome to PartnerHub.');
+  } else if (query.get('password-updated') === '1') {
+    showNotice(notice, 'success', 'Your password was updated.');
   }
 }
 

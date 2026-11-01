@@ -206,10 +206,39 @@ export function renderAuthPage(pageId) {
             <div class="mb-3"><label class="form-label" for="email">Email address</label><input class="form-control form-control-lg" id="email" name="email" type="email" autocomplete="email" placeholder="you@company.com" required></div>
             <div class="mb-3"><label class="form-label" for="password">Password</label><input class="form-control form-control-lg" id="password" name="password" type="password" autocomplete="${isRegister ? 'new-password' : 'current-password'}" minlength="8" required></div>
             ${isRegister ? '<div class="mb-4"><label class="form-label" for="confirm-password">Confirm password</label><input class="form-control form-control-lg" id="confirm-password" name="confirmPassword" type="password" autocomplete="new-password" minlength="8" required></div>' : ''}
+            ${isRegister ? '' : '<p class="text-end"><a href="/src/pages/forgot-password.html">Forgot password?</a></p>'}
             <button class="btn btn-primary btn-lg w-100" type="submit">${isRegister ? 'Create account' : 'Sign in'}<i class="bi bi-arrow-right ms-2" aria-hidden="true"></i></button>
           </form>
           <button class="btn btn-outline-secondary w-100 mt-2" id="verify-supabase-connection" type="button">Test Supabase connection</button>
           <p class="auth-switch">${isRegister ? 'Already have an account?' : 'New to PartnerHub?'} <a href="/src/pages/${isRegister ? 'login' : 'register'}.html">${isRegister ? 'Sign in' : 'Create an account'}</a></p>
+        </div>
+      </section>
+      <p class="auth-footnote"><i class="bi bi-lock me-1" aria-hidden="true"></i>Authentication is powered by Supabase.</p>
+    </main>
+  `;
+}
+
+export function renderPasswordRecoveryPage(mode) {
+  const isUpdate = mode === 'update';
+  return `
+    <main class="auth-page">
+      <a class="auth-brand" href="/src/pages/login.html"><span class="brand-mark"><i class="bi bi-layers" aria-hidden="true"></i></span><span>Partner<span>Hub</span></span></a>
+      <section class="card auth-card">
+        <div class="card-body">
+          <span class="auth-eyebrow">${isUpdate ? 'SECURE YOUR ACCOUNT' : 'ACCOUNT RECOVERY'}</span>
+          <h1>${isUpdate ? 'Choose a new password' : 'Reset your password'}</h1>
+          <p class="auth-description">${isUpdate ? 'Enter a new password for your PartnerHub account.' : 'Enter your account email and we will send a password reset link if it matches an account.'}</p>
+          <div id="auth-notice" class="alert d-none" role="status" aria-live="polite"></div>
+          <form id="password-recovery-form">
+            ${isUpdate ? `
+              <div class="mb-3"><label class="form-label" for="password">New password</label><input class="form-control form-control-lg" id="password" name="password" type="password" autocomplete="new-password" minlength="8" required></div>
+              <div class="mb-4"><label class="form-label" for="confirm-password">Confirm new password</label><input class="form-control form-control-lg" id="confirm-password" name="confirmPassword" type="password" autocomplete="new-password" minlength="8" required></div>
+            ` : `
+              <div class="mb-4"><label class="form-label" for="email">Email address</label><input class="form-control form-control-lg" id="email" name="email" type="email" autocomplete="email" placeholder="you@company.com" required></div>
+            `}
+            <button class="btn btn-primary btn-lg w-100" type="submit">${isUpdate ? 'Update password' : 'Send reset link'}<i class="bi bi-arrow-right ms-2" aria-hidden="true"></i></button>
+          </form>
+          <p class="auth-switch">${isUpdate ? '<a href="/src/pages/forgot-password.html">Request another reset link</a> · ' : ''}<a href="/src/pages/login.html">Return to sign in</a></p>
         </div>
       </section>
       <p class="auth-footnote"><i class="bi bi-lock me-1" aria-hidden="true"></i>Authentication is powered by Supabase.</p>

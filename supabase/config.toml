@@ -164,6 +164,8 @@ site_url = "http://127.0.0.1:5173"
 additional_redirect_urls = [
   "http://127.0.0.1:5173/src/pages/login.html",
   "http://localhost:5173/src/pages/login.html",
+  "http://127.0.0.1:5173/src/pages/reset-password.html",
+  "http://localhost:5173/src/pages/reset-password.html",
   "http://127.0.0.1:3000",
   "https://127.0.0.1:3000"
 ]
