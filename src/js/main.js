@@ -5,6 +5,7 @@ import '../css/style.css';
 import { setupAdminPage } from './components/admin.js';
 import { setupApplicationsPage } from './components/applications.js';
 import { setupCustomersPage } from './components/customers.js';
+import { setupDashboardPage } from './components/dashboard.js';
 import { setupDocumentsPage } from './components/documents.js';
 import { setupProgramsPage } from './components/programs.js';
 import { setupProjectsPage } from './components/projects.js';
@@ -306,6 +307,9 @@ async function setupProtectedPage(protectedPageId) {
   setProfileSummary(identity.profile);
   setupAuthStateListener(identity.user.id);
   setupPageActions();
+  if (protectedPageId === 'dashboard') {
+    setupDashboardPage();
+  }
   if (protectedPageId === 'admin') {
     setupAdminPage(identity.user.id);
   }

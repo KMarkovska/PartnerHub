@@ -27,19 +27,23 @@ export const pages = {
     subtitle: 'A clear view of your funding activity and projects.',
     icon: 'bi-grid-1x2',
     content: `
+      <div id="dashboard-loading" class="text-muted small mb-3" role="status" aria-live="polite">
+        <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Loading your workspace overview…
+      </div>
+      <div id="dashboard-error" class="alert alert-danger d-none" role="alert"></div>
       <div class="row g-3 mb-4">
         ${[
-          ['Total applications', 'bi-files', 'bi-blue'],
-          ['Pending review', 'bi-hourglass-split', 'bi-amber'],
-          ['Approved funding', 'bi-currency-euro', 'bi-green'],
-          ['Active projects', 'bi-kanban', 'bi-violet'],
-        ].map(([label, icon, color]) => `
+          ['Total applications', 'totalApplications', 'bi-files', 'bi-blue', 'All applications you can access'],
+          ['Pending review', 'pendingApplications', 'bi-hourglass-split', 'bi-amber', 'Submitted or under review'],
+          ['Approved funding', 'approvedFunding', 'bi-currency-euro', 'bi-green', 'Across approved applications'],
+          ['Active projects', 'activeProjects', 'bi-kanban', 'bi-violet', 'Projects in progress'],
+        ].map(([label, key, icon, color, footnote]) => `
           <div class="col-12 col-sm-6 col-xl-3">
             <section class="card kpi-card h-100">
               <div class="card-body">
                 <div class="kpi-topline"><span class="kpi-label">${label}</span><span class="kpi-icon ${color}"><i class="bi ${icon}" aria-hidden="true"></i></span></div>
-                <p class="kpi-value mb-1">—</p>
-                <p class="kpi-footnote mb-0">Connect your workspace to load data</p>
+                <p class="kpi-value mb-1" data-dashboard-metric="${key}">—</p>
+                <p class="kpi-footnote mb-0">${footnote}</p>
               </div>
             </section>
           </div>
@@ -49,19 +53,28 @@ export const pages = {
         <div class="col-12 col-xl-8">
           <section class="card content-card h-100">
             <div class="card-header"><div><h2 class="section-title">Recent applications</h2><p class="section-subtitle">The latest funding requests in your workspace</p></div><a class="btn btn-sm btn-light border" href="/src/pages/applications.html">View applications</a></div>
-            ${table(['Application', 'Customer', 'Program', 'Requested', 'Status'], 'No applications yet', 'Applications will appear here when your workspace is connected.')}
+            <div class="table-responsive">
+              <table class="table align-middle data-table">
+                <thead><tr>${['Application', 'Customer', 'Program', 'Requested', 'Status'].map((column) => `<th scope="col">${column}</th>`).join('')}</tr></thead>
+                <tbody id="dashboard-recent-applications"></tbody>
+              </table>
+            </div>
+            <div id="dashboard-applications-empty" class="d-none">${emptyState('bi-files', 'No applications yet', 'Create an application to see it in your workspace overview.')}</div>
           </section>
         </div>
         <div class="col-12 col-xl-4">
           <section class="card content-card h-100">
             <div class="card-header"><div><h2 class="section-title">Upcoming deadlines</h2><p class="section-subtitle">Stay ahead of important dates</p></div></div>
-            ${emptyState('bi-calendar-check', 'Nothing scheduled', 'Upcoming application deadlines will show here.')}
+            <div id="dashboard-deadlines" class="list-group list-group-flush"></div>
+            <div id="dashboard-deadlines-empty" class="d-none">${emptyState('bi-calendar-check', 'Nothing scheduled', 'Upcoming application deadlines will show here.')}</div>
           </section>
         </div>
       </div>
       <section class="card content-card mt-3">
         <div class="card-header"><div><h2 class="section-title">Funding overview</h2><p class="section-subtitle">Requested and approved funding across your applications</p></div></div>
-        <div class="overview-placeholder"><i class="bi bi-bar-chart-line" aria-hidden="true"></i><span>Funding analytics will be available when connected data is loaded.</span></div>
+        <div id="dashboard-funding-overview" class="p-3">
+          <div class="overview-placeholder"><i class="bi bi-bar-chart-line" aria-hidden="true"></i><span>Loading funding totals…</span></div>
+        </div>
       </section>
     `,
   },
