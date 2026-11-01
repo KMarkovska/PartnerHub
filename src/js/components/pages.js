@@ -69,7 +69,7 @@ export const pages = {
     title: 'Funding applications',
     subtitle: 'Track requests from draft through final decision.',
     icon: 'bi-files',
-    action: actionButton('New application'),
+    action: '<button class="btn btn-primary" type="button" data-action="application-create"><i class="bi bi-plus-lg me-2" aria-hidden="true"></i>New application</button>',
     content: `
       <section class="card content-card">
         <div class="card-body border-bottom">
@@ -79,8 +79,47 @@ export const pages = {
             <div class="col-12 col-sm-6 col-lg-4"><label class="visually-hidden" for="application-customer">Filter by customer</label><select class="form-select" id="application-customer"><option value="">All customers</option></select></div>
           </div>
         </div>
-        ${table(['Application', 'Customer', 'Funding program', 'Requested amount', 'Submitted', 'Status', ''], 'No applications found', 'New funding applications will appear here.', 'bi-file-earmark-plus')}
+        <div id="applications-loading" class="text-muted small p-3" role="status" aria-live="polite">Loading applications…</div>
+        <div id="applications-error" class="alert alert-danger m-3 d-none" role="alert"></div>
+        <div id="applications-empty" class="d-none">${emptyState('bi-file-earmark-plus', 'No applications found', 'Create an application to start tracking a funding request.')}</div>
+        <div id="applications-filter-empty" class="text-muted small text-center p-4 d-none">No applications match these filters.</div>
+        <div class="table-responsive">
+          <table class="table align-middle data-table">
+            <thead><tr>${['Application', 'Customer', 'Funding program', 'Requested amount', 'Created', 'Status'].map((column) => `<th scope="col">${column}</th>`).join('')}</tr></thead>
+            <tbody id="applications-body"></tbody>
+          </table>
+        </div>
       </section>
+      <div class="modal fade" id="application-modal" tabindex="-1" aria-labelledby="application-modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+          <div class="modal-content">
+            <form id="application-form">
+              <div class="modal-header">
+                <div><h2 class="modal-title fs-5" id="application-modal-title">New funding application</h2><p class="text-muted small mb-0">Start a draft request for one of your customers.</p></div>
+                <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <div id="application-form-error" class="alert alert-danger d-none" role="alert"></div>
+                <div id="application-options-empty" class="alert alert-info d-none" role="status"></div>
+                <div class="mb-3"><label class="form-label" for="application-title">Application title</label><input class="form-control" id="application-title" name="title" maxlength="150" required></div>
+                <div class="row g-3">
+                  <div class="col-md-6"><label class="form-label" for="application-customer-input">Customer</label><select class="form-select" id="application-customer-input" name="customerId" required><option value="">Choose a customer</option></select></div>
+                  <div class="col-md-6"><label class="form-label" for="application-program-input">Funding program</label><select class="form-select" id="application-program-input" name="programId" required><option value="">Choose a program</option></select><div id="application-program-limit" class="form-text"></div></div>
+                </div>
+                <div class="row g-3 mt-0">
+                  <div class="col-md-6"><label class="form-label" for="application-amount">Requested amount</label><input class="form-control" id="application-amount" name="requestedAmount" type="number" min="0.01" step="0.01" required></div>
+                  <div class="col-md-6"><label class="form-label" for="application-deadline">Deadline</label><input class="form-control" id="application-deadline" name="deadline" type="date"></div>
+                </div>
+                <div class="mt-3"><label class="form-label" for="application-description">Description</label><textarea class="form-control" id="application-description" name="description" rows="4" maxlength="5000"></textarea></div>
+              </div>
+              <div class="modal-footer">
+                <button class="btn btn-light border" type="button" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" type="submit"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>Create draft</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     `,
   },
   customers: {

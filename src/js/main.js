@@ -3,6 +3,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import '../css/style.css';
 import { setupAdminPage } from './components/admin.js';
+import { setupApplicationsPage } from './components/applications.js';
 import { renderLayout } from './components/layout.js';
 import { renderAuthPage, renderPasswordRecoveryPage } from './components/pages.js';
 import {
@@ -303,6 +304,9 @@ async function setupProtectedPage(protectedPageId) {
   setupPageActions();
   if (protectedPageId === 'admin') {
     setupAdminPage(identity.user.id);
+  }
+  if (protectedPageId === 'applications') {
+    setupApplicationsPage(identity.user.id);
   }
 
   const query = new URLSearchParams(window.location.search);
