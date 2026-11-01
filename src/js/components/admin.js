@@ -1,3 +1,4 @@
+import { Modal } from 'bootstrap';
 import {
   getAdministrationMetrics,
   getAdministrationUsers,
@@ -5,9 +6,15 @@ import {
 } from '../services/admin.service.js';
 
 export function setupAdminPage(currentUserId) {
+  const confirmationElement = document.getElementById('admin-access-confirmation');
+  const confirmationModal = Modal.getOrCreateInstance(confirmationElement);
+  const confirmationButton = document.getElementById('admin-access-confirm');
+  const confirmationCancel = document.getElementById('admin-access-cancel');
   const search = document.getElementById('user-search');
   const roleFilter = document.getElementById('user-role');
   const usersBody = document.getElementById('admin-users-body');
+  let pendingAccessUpdate = null;
+  let isSavingAccess = false;
 
   search.addEventListener('input', filterUsers);
   roleFilter.addEventListener('change', filterUsers);
@@ -21,17 +28,37 @@ export function setupAdminPage(currentUserId) {
     updateSaveButton(row);
     filterUsers();
   });
-  usersBody.addEventListener('click', async (event) => {
+  usersBody.addEventListener('click', (event) => {
     const button = event.target.closest('[data-admin-save]');
-    if (!button) return;
+    if (!button || button.disabled) return;
 
     const row = button.closest('[data-admin-user-row]');
     const role = row.querySelector('[data-admin-role]').value;
     const isActive = row.querySelector('[data-admin-active]').checked;
     const name = row.dataset.userName;
-    if (!window.confirm(`Save role and account status changes for ${name}?`)) return;
+    pendingAccessUpdate = { row, role, isActive, name };
+    document.getElementById('admin-access-confirm-user').textContent = name;
+    document.getElementById('admin-access-confirm-role').textContent = role === 'admin'
+      ? 'Administrator'
+      : 'Regular user';
+    document.getElementById('admin-access-confirm-status').textContent = isActive ? 'Active' : 'Inactive';
+    confirmationModal.show();
+  });
 
-    button.disabled = true;
+  confirmationElement.addEventListener('hide.bs.modal', (event) => {
+    if (isSavingAccess) event.preventDefault();
+  });
+  confirmationElement.addEventListener('hidden.bs.modal', () => {
+    pendingAccessUpdate = null;
+  });
+  confirmationButton.addEventListener('click', async () => {
+    if (!pendingAccessUpdate || isSavingAccess) return;
+
+    const { row, role, isActive, name } = pendingAccessUpdate;
+    isSavingAccess = true;
+    confirmationButton.disabled = true;
+    confirmationCancel.disabled = true;
+    row.querySelector('[data-admin-save]').disabled = true;
     row.setAttribute('aria-busy', 'true');
     try {
       await setUserAccess(row.dataset.userId, role, isActive);
@@ -43,6 +70,11 @@ export function setupAdminPage(currentUserId) {
     } finally {
       row.removeAttribute('aria-busy');
       updateSaveButton(row);
+      isSavingAccess = false;
+      confirmationButton.disabled = false;
+      confirmationCancel.disabled = false;
+      pendingAccessUpdate = null;
+      confirmationModal.hide();
     }
   });
 

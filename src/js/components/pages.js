@@ -318,6 +318,29 @@ export const pages = {
           <div id="admin-users-filter-empty" class="text-muted p-3 d-none" role="status">No users match the selected filters.</div>
         </div>
       </section>
+      <div class="modal fade" id="admin-access-confirmation" tabindex="-1" aria-labelledby="admin-access-confirmation-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <div><h2 class="modal-title fs-5" id="admin-access-confirmation-title">Confirm access changes</h2><p class="text-muted small mb-0">Review these changes before saving.</p></div>
+              <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p>Save role and account status changes for <strong id="admin-access-confirm-user"></strong>?</p>
+              <dl class="row mb-0">
+                <dt class="col-5 text-muted fw-normal">New role</dt>
+                <dd class="col-7" id="admin-access-confirm-role"></dd>
+                <dt class="col-5 text-muted fw-normal">New account status</dt>
+                <dd class="col-7 mb-0" id="admin-access-confirm-status"></dd>
+              </dl>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-light border" id="admin-access-cancel" type="button" data-bs-dismiss="modal">Cancel</button>
+              <button class="btn btn-primary" id="admin-access-confirm" type="button"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>Save changes</button>
+            </div>
+          </div>
+        </div>
+      </div>
     `,
   },
   programs: {
