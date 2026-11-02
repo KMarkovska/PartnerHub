@@ -214,7 +214,9 @@ export function setupApplicationsPage(currentUserId, role) {
   function renderStatusActions(application) {
     const actions = [];
     if (isAdmin) {
-      if (application.status === 'Submitted') {
+      if (application.status === 'Draft') {
+        actions.push(['Submitted', 'Submit for review', 'btn-outline-primary']);
+      } else if (application.status === 'Submitted') {
         actions.push(['Under Review', 'Start review', 'btn-outline-primary']);
         actions.push(['Approved', 'Approve', 'btn-outline-success']);
         actions.push(['Rejected', 'Reject', 'btn-outline-danger']);
@@ -243,7 +245,8 @@ export function setupApplicationsPage(currentUserId, role) {
         && nextStatus === 'Submitted';
     }
 
-    return (application.status === 'Submitted'
+    return (application.status === 'Draft' && nextStatus === 'Submitted')
+      || (application.status === 'Submitted'
         && ['Under Review', 'Approved', 'Rejected'].includes(nextStatus))
       || (application.status === 'Under Review'
         && ['Approved', 'Rejected'].includes(nextStatus));

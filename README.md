@@ -95,6 +95,6 @@ Vite builds each page as a separate HTML entry under `dist/`.
 
 ## Application status workflow
 
-Regular users create draft applications and use **Submit for review** in the application list to send them to an administrator. Administrators can move submitted applications to **Under Review**, **Approved**, or **Rejected**; applications under review can be approved or rejected.
+Regular users can submit their own draft applications for review. Administrators can submit drafts on behalf of users, move submitted applications to **Under Review**, **Approved**, or **Rejected**, and approve or reject applications under review.
 
-The database enforces these transitions. Apply `supabase/migrations/20261101105119_application_status_workflow.sql` to the target Supabase database before using the status controls in a deployment.
+The database enforces these transitions. Apply `supabase/migrations/20261101105119_application_status_workflow.sql` and `supabase/migrations/20261102160557_admin_submit_draft.sql` to the target Supabase database before using the status controls in a deployment.

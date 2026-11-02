@@ -1,6 +1,6 @@
 begin;
 
-select plan(48);
+select plan(50);
 
 select has_table('public', 'profiles', 'profiles table exists');
 select has_table('public', 'customers', 'customers table exists');
@@ -149,6 +149,10 @@ values
 update public.applications
 set status = 'Draft'
 where id = 'a2000000-0000-4000-8000-000000000001';
+
+update public.applications
+set status = 'Draft'
+where id = 'a2000000-0000-4000-8000-000000000002';
 
 insert into public.milestones (id, project_id, title)
 values
@@ -373,6 +377,22 @@ select is(
   (select count(*)::integer from public.applications),
   2,
   'active administrators can view all applications'
+);
+
+select throws_ok(
+  $$update public.applications
+    set status = 'Approved'
+    where id = 'a2000000-0000-4000-8000-000000000002'$$,
+  '42501',
+  null,
+  'administrators cannot approve a draft without submitting it first'
+);
+
+select lives_ok(
+  $$update public.applications
+    set status = 'Submitted'
+    where id = 'a2000000-0000-4000-8000-000000000002'$$,
+  'administrators can submit draft applications for review'
 );
 
 select lives_ok(
