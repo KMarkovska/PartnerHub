@@ -62,31 +62,49 @@ export async function getDashboardOverview() {
 
   const fundingApplications = await getFundingApplications(applicationsCount.count);
   const fundingTotals = new Map();
+  const fundingTrends = new Map();
   let fundingTotalsIncomplete = false;
   for (const application of fundingApplications) {
     const currency = application.program?.currency;
+    const createdAt = new Date(application.created_at);
+    if (Number.isNaN(createdAt.getTime())) {
+      throw new Error('An application has an invalid creation date.');
+    }
+
+    const requestedAmount = Number(application.requested_amount);
+    if (!Number.isFinite(requestedAmount)) {
+      throw new Error('An application has an invalid requested amount.');
+    }
+
+    const isApproved = application.status === 'Approved';
+    const approvedAmount = isApproved
+      ? application.approved_amount === null
+        ? requestedAmount
+        : Number(application.approved_amount)
+      : 0;
+    if (!Number.isFinite(approvedAmount)) {
+      throw new Error('An approved application has an invalid approved amount.');
+    }
+
     if (!currency) {
       fundingTotalsIncomplete = true;
       continue;
     }
 
     const totals = fundingTotals.get(currency) ?? { requested: 0, approved: 0 };
-    const requestedAmount = Number(application.requested_amount);
-    if (!Number.isFinite(requestedAmount)) {
-      throw new Error('An application has an invalid requested amount.');
-    }
     totals.requested += requestedAmount;
-
-    if (application.status === 'Approved') {
-      const approvedAmount = application.approved_amount === null
-        ? requestedAmount
-        : Number(application.approved_amount);
-      if (!Number.isFinite(approvedAmount)) {
-        throw new Error('An approved application has an invalid approved amount.');
-      }
-      totals.approved += approvedAmount;
-    }
+    totals.approved += approvedAmount;
     fundingTotals.set(currency, totals);
+
+    const trend = fundingTrends.get(currency) ?? {
+      monthly: new Map(),
+      yearly: new Map(),
+    };
+    const month = `${createdAt.getUTCFullYear()}-${String(createdAt.getUTCMonth() + 1).padStart(2, '0')}`;
+    const year = String(createdAt.getUTCFullYear());
+    addFundingTrend(trend.monthly, month, requestedAmount, approvedAmount, isApproved);
+    addFundingTrend(trend.yearly, year, requestedAmount, approvedAmount, isApproved);
+    fundingTrends.set(currency, trend);
   }
 
   return {
@@ -98,6 +116,13 @@ export async function getDashboardOverview() {
     fundingTotalsIncomplete,
     fundingTotals: [...fundingTotals.entries()]
       .map(([currency, totals]) => ({ currency, ...totals }))
+      .sort((left, right) => left.currency.localeCompare(right.currency)),
+    fundingTrends: [...fundingTrends.entries()]
+      .map(([currency, trend]) => ({
+        currency,
+        monthly: serializeFundingTrend(trend.monthly),
+        yearly: serializeFundingTrend(trend.yearly),
+      }))
       .sort((left, right) => left.currency.localeCompare(right.currency)),
   };
 }
@@ -162,12 +187,32 @@ async function getFundingApplications(totalCount) {
   for (let offset = 0; offset < totalCount; offset += pageSize) {
     const { data, error } = await supabase
       .from('applications')
-      .select('requested_amount, approved_amount, status, program:funding_programs(currency)')
+      .select('requested_amount, approved_amount, status, created_at, program:funding_programs(currency)')
       .range(offset, offset + pageSize - 1);
     if (error) throw error;
     applications.push(...(data ?? []));
   }
   return applications;
+}
+
+function addFundingTrend(periods, period, requestedAmount, approvedAmount, isApproved) {
+  const totals = periods.get(period) ?? {
+    requested: 0,
+    approved: 0,
+    applications: 0,
+    approvedApplications: 0,
+  };
+  totals.requested += requestedAmount;
+  totals.approved += approvedAmount;
+  totals.applications += 1;
+  if (isApproved) totals.approvedApplications += 1;
+  periods.set(period, totals);
+}
+
+function serializeFundingTrend(periods) {
+  return [...periods.entries()]
+    .map(([period, totals]) => ({ period, ...totals }))
+    .sort((left, right) => left.period.localeCompare(right.period));
 }
 
 function getLocalDateString() {

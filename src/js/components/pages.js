@@ -49,6 +49,74 @@ export const pages = {
           </div>
         `).join('')}
       </div>
+      <section class="card content-card funding-analytics-card mb-4" aria-labelledby="funding-analytics-title">
+        <div class="card-header analytics-header">
+          <div class="analytics-heading">
+            <span class="analytics-heading-icon"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i></span>
+            <div>
+              <h2 class="section-title" id="funding-analytics-title">Funding trends</h2>
+              <p class="section-subtitle">Compare requests with approved funding over time</p>
+            </div>
+          </div>
+          <div class="analytics-controls">
+            <div>
+              <label class="form-label" for="funding-analytics-period">Group by</label>
+              <select class="form-select form-select-sm" id="funding-analytics-period">
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label" for="funding-analytics-currency">Currency</label>
+              <select class="form-select form-select-sm" id="funding-analytics-currency" disabled>
+                <option value="">Loading…</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="card-body analytics-body">
+          <div class="analytics-summary" aria-live="polite">
+            <div class="analytics-metric">
+              <span id="funding-analytics-requested-label">Requested this month</span>
+              <strong id="funding-analytics-requested">—</strong>
+            </div>
+            <div class="analytics-metric">
+              <span id="funding-analytics-approved-label">Approved this month</span>
+              <strong id="funding-analytics-approved">—</strong>
+            </div>
+            <div class="analytics-metric">
+              <span id="funding-analytics-applications-label">Applications this month</span>
+              <strong id="funding-analytics-applications">—</strong>
+            </div>
+            <div class="analytics-metric">
+              <span id="funding-analytics-rate-label">Approval rate this month</span>
+              <strong id="funding-analytics-rate">—</strong>
+            </div>
+            <div class="analytics-metric analytics-metric-trend">
+              <span id="funding-analytics-change-label">Requests vs previous month</span>
+              <strong id="funding-analytics-change">—</strong>
+            </div>
+          </div>
+          <div class="analytics-chart" id="funding-analytics-chart" aria-live="polite">
+            <div class="overview-placeholder"><i class="bi bi-bar-chart-line" aria-hidden="true"></i><span>Loading funding trends…</span></div>
+          </div>
+          <details class="analytics-data-details">
+            <summary>View chart data as a table</summary>
+            <div class="table-responsive">
+              <table class="table table-sm align-middle data-table mb-0">
+                <thead><tr><th scope="col">Period</th><th scope="col">Applications</th><th scope="col">Requested</th><th scope="col">Approved</th></tr></thead>
+                <tbody id="funding-analytics-data"></tbody>
+              </table>
+            </div>
+          </details>
+          <div class="analytics-legend" aria-label="Chart legend">
+            <span><i class="analytics-legend-swatch analytics-legend-requested"></i>Requested</span>
+            <span><i class="analytics-legend-swatch analytics-legend-approved"></i>Approved</span>
+            <span class="analytics-current-period-note" id="funding-analytics-current-note">Current month is in progress.</span>
+          </div>
+          <p class="analytics-note mb-0" id="funding-analytics-note">Approved funding is an allocation, not cash spent. Profit is unavailable because project revenue and costs are not tracked.</p>
+        </div>
+      </section>
       <section class="card content-card calendar-card mb-4" aria-labelledby="project-calendar-title">
         <div class="card-header calendar-header">
           <div class="calendar-heading">

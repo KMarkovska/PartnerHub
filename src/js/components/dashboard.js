@@ -2,6 +2,7 @@ import { getDashboardOverview, getProjectCalendarEvents } from '../services/dash
 
 export function setupDashboardPage() {
   setupProjectCalendar();
+  const updateFundingAnalytics = setupFundingAnalytics();
   void loadDashboard();
 
   async function loadDashboard() {
@@ -23,6 +24,7 @@ export function setupDashboardPage() {
       renderRecentApplications(overview.recentApplications);
       renderUpcomingDeadlines(overview.upcomingDeadlines);
       renderFundingOverview(overview.fundingTotals, overview.fundingTotalsIncomplete);
+      updateFundingAnalytics(overview);
     } catch (error) {
       errorPanel.textContent = `Unable to load your workspace overview: ${getErrorMessage(error)}`;
       errorPanel.classList.remove('d-none');
@@ -33,10 +35,252 @@ export function setupDashboardPage() {
       document.getElementById('dashboard-deadlines').replaceChildren();
       document.getElementById('dashboard-funding-overview').textContent =
         'Funding totals are unavailable until the overview can be loaded.';
+      setFundingAnalyticsUnavailable();
     } finally {
       loading.classList.add('d-none');
     }
   }
+}
+
+function setupFundingAnalytics() {
+  const periodSelect = document.getElementById('funding-analytics-period');
+  const currencySelect = document.getElementById('funding-analytics-currency');
+  let overview = null;
+
+  periodSelect.addEventListener('change', () => renderFundingAnalytics(overview));
+  currencySelect.addEventListener('change', () => renderFundingAnalytics(overview));
+
+  return (data) => {
+    overview = data;
+    renderFundingAnalytics(data);
+  };
+}
+
+function renderFundingAnalytics(overview) {
+  if (!overview) return;
+
+  const periodSelect = document.getElementById('funding-analytics-period');
+  const currencySelect = document.getElementById('funding-analytics-currency');
+  const chart = document.getElementById('funding-analytics-chart');
+  const dataTable = document.getElementById('funding-analytics-data');
+  const note = document.getElementById('funding-analytics-note');
+  const periodType = periodSelect.value;
+  const trends = overview.fundingTrends ?? [];
+  const selectedCurrency = currencySelect.value;
+
+  currencySelect.replaceChildren(...trends.map(({ currency }) => new Option(currency, currency)));
+  currencySelect.disabled = trends.length === 0;
+  if (trends.length > 0) {
+    currencySelect.value = trends.some(({ currency }) => currency === selectedCurrency)
+      ? selectedCurrency
+      : trends[0].currency;
+  }
+
+  const currencyTrend = trends.find(({ currency }) => currency === currencySelect.value);
+  if (!currencyTrend) {
+    for (const id of [
+      'funding-analytics-requested',
+      'funding-analytics-approved',
+      'funding-analytics-applications',
+      'funding-analytics-rate',
+      'funding-analytics-change',
+    ]) {
+      document.getElementById(id).textContent = '—';
+    }
+    chart.innerHTML = `
+      <div class="analytics-empty">
+        <i class="bi bi-bar-chart-line" aria-hidden="true"></i>
+        <span>No currency-based funding data is available for this account.</span>
+      </div>
+    `;
+    dataTable.replaceChildren();
+    note.textContent = analyticsNote(overview.fundingTotalsIncomplete);
+    return;
+  }
+
+  const periods = getAnalyticsPeriods(periodType);
+  const bucketByPeriod = new Map(currencyTrend[periodType].map((bucket) => [bucket.period, bucket]));
+  const rows = periods.map((period) => ({
+    ...period,
+    ...(bucketByPeriod.get(period.key) ?? {
+      requested: 0,
+      approved: 0,
+      applications: 0,
+      approvedApplications: 0,
+    }),
+  }));
+  const current = rows[rows.length - 1];
+  const periodName = periodType === 'monthly' ? 'month' : 'year';
+  document.getElementById('funding-analytics-requested-label').textContent =
+    `Requested this ${periodName}`;
+  document.getElementById('funding-analytics-approved-label').textContent =
+    `Approved this ${periodName}`;
+  document.getElementById('funding-analytics-applications-label').textContent =
+    `Applications this ${periodName}`;
+  document.getElementById('funding-analytics-rate-label').textContent =
+    `Approval rate for this ${periodName}'s applications`;
+  document.getElementById('funding-analytics-change-label').textContent =
+    `Requests vs previous full ${periodName}`;
+  document.getElementById('funding-analytics-requested').textContent =
+    formatCurrency(current.requested, currencyTrend.currency);
+  document.getElementById('funding-analytics-approved').textContent =
+    formatCurrency(current.approved, currencyTrend.currency);
+  document.getElementById('funding-analytics-applications').textContent =
+    formatCount(current.applications);
+  document.getElementById('funding-analytics-rate').textContent = current.applications
+    ? `${((current.approvedApplications / current.applications) * 100).toFixed(1)}%`
+    : '—';
+
+  const lastCompleted = rows[rows.length - 2];
+  const previousCompleted = rows[rows.length - 3];
+  const change = document.getElementById('funding-analytics-change');
+  change.classList.remove('analytics-change-up', 'analytics-change-down', 'analytics-change-neutral');
+  if (previousCompleted.requested > 0) {
+    const percentChange = ((lastCompleted.requested - previousCompleted.requested)
+      / previousCompleted.requested) * 100;
+    change.textContent = `${percentChange > 0 ? '+' : ''}${percentChange.toFixed(1)}%`;
+    change.classList.add(
+      percentChange > 0
+        ? 'analytics-change-up'
+        : percentChange < 0
+          ? 'analytics-change-down'
+          : 'analytics-change-neutral',
+    );
+  } else {
+    change.textContent = lastCompleted.requested > 0 ? 'New activity' : 'No baseline';
+    change.classList.add('analytics-change-neutral');
+  }
+
+  document.getElementById('funding-analytics-current-note').textContent =
+    periodType === 'monthly' ? 'Current month is month-to-date.' : 'Current year is year-to-date.';
+  note.textContent = analyticsNote(overview.fundingTotalsIncomplete);
+  dataTable.innerHTML = rows.map((row) => `
+    <tr>
+      <th scope="row">${escapeHtml(row.label)}</th>
+      <td>${formatCount(row.applications)}</td>
+      <td>${formatCurrency(row.requested, currencyTrend.currency)}</td>
+      <td>${formatCurrency(row.approved, currencyTrend.currency)}</td>
+    </tr>
+  `).join('');
+  renderFundingTrendChart(chart, rows, currencyTrend.currency, periodType);
+}
+
+function getAnalyticsPeriods(periodType) {
+  const now = new Date();
+  const currentYear = now.getUTCFullYear();
+  if (periodType === 'yearly') {
+    return Array.from({ length: 5 }, (_, index) => {
+      const year = String(currentYear - 4 + index);
+      return { key: year, label: year };
+    });
+  }
+
+  const currentMonth = now.getUTCMonth();
+  return Array.from({ length: 12 }, (_, index) => {
+    const date = new Date(Date.UTC(currentYear, currentMonth - 11 + index, 1));
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const label = new Intl.DateTimeFormat(undefined, {
+      month: 'short',
+      timeZone: 'UTC',
+    }).format(date);
+    return { key: `${year}-${month}`, label: `${label} '${String(year).slice(-2)}` };
+  });
+}
+
+function renderFundingTrendChart(container, rows, currency, periodType) {
+  if (!rows.some((row) => row.applications > 0)) {
+    container.innerHTML = `
+      <div class="analytics-empty">
+        <i class="bi bi-bar-chart-line" aria-hidden="true"></i>
+        <span>No applications were created during this period.</span>
+      </div>
+    `;
+    return;
+  }
+
+  const width = 900;
+  const height = 290;
+  const left = 84;
+  const right = 18;
+  const top = 16;
+  const bottom = 44;
+  const plotWidth = width - left - right;
+  const plotHeight = height - top - bottom;
+  const maximum = Math.max(
+    1,
+    ...rows.map((row) => Math.max(row.requested, row.approved)),
+  ) * 1.12;
+  const groupWidth = plotWidth / rows.length;
+  const barWidth = Math.min(24, groupWidth * 0.3);
+  const gap = Math.min(5, groupWidth * 0.07);
+  const grid = Array.from({ length: 5 }, (_, index) => {
+    const y = top + (plotHeight * index) / 4;
+    const value = maximum * (4 - index) / 4;
+    return `
+      <line class="analytics-grid-line" x1="${left}" y1="${y}" x2="${width - right}" y2="${y}"></line>
+      <text class="analytics-axis-label" x="${left - 10}" y="${y + 4}" text-anchor="end">${escapeHtml(formatCompactCurrency(value, currency))}</text>
+    `;
+  }).join('');
+  const bars = rows.map((row, index) => {
+    const center = left + groupWidth * (index + 0.5);
+    const requestedHeight = (row.requested / maximum) * plotHeight;
+    const approvedHeight = (row.approved / maximum) * plotHeight;
+    const requestedX = center - barWidth - gap / 2;
+    const approvedX = center + gap / 2;
+    const requestedY = top + plotHeight - requestedHeight;
+    const approvedY = top + plotHeight - approvedHeight;
+    const label = escapeHtml(row.label);
+    const requestedTitle = escapeHtml(`${row.label}: requested ${formatCurrency(row.requested, currency)}`);
+    const approvedTitle = escapeHtml(`${row.label}: approved ${formatCurrency(row.approved, currency)}`);
+    return `
+      ${row.requested > 0 ? `<rect class="analytics-bar-requested" x="${requestedX}" y="${requestedY}" width="${barWidth}" height="${requestedHeight}" rx="4" tabindex="0" aria-label="${requestedTitle}"><title>${requestedTitle}</title></rect>` : ''}
+      ${row.approved > 0 ? `<rect class="analytics-bar-approved" x="${approvedX}" y="${approvedY}" width="${barWidth}" height="${approvedHeight}" rx="4" tabindex="0" aria-label="${approvedTitle}"><title>${approvedTitle}</title></rect>` : ''}
+      <text class="analytics-period-label" x="${center}" y="${height - 13}" text-anchor="middle">${label}</text>
+    `;
+  }).join('');
+  const grouping = periodType === 'monthly' ? 'month' : 'year';
+
+  container.innerHTML = `
+    <svg class="analytics-chart-svg" viewBox="0 0 ${width} ${height}" role="img"
+         aria-labelledby="funding-analytics-svg-title funding-analytics-svg-description">
+      <title id="funding-analytics-svg-title">Requested and approved funding by ${grouping}</title>
+      <desc id="funding-analytics-svg-description">Grouped bars compare requested and currently approved amounts in ${escapeHtml(currency)}. Detailed values are available in the table below.</desc>
+      ${grid}
+      ${bars}
+    </svg>
+  `;
+}
+
+function formatCompactCurrency(value, currency) {
+  return new Intl.NumberFormat(undefined, {
+    style: 'currency',
+    currency,
+    notation: 'compact',
+    maximumFractionDigits: 1,
+  }).format(value);
+}
+
+function analyticsNote(hasIncompleteTotals) {
+  const note = 'Amounts are grouped by application creation date. Approved funding is the current approved allocation, not cash spent. Profit is unavailable because project revenue and costs are not tracked.';
+  return hasIncompleteTotals
+    ? `${note} Some records are omitted because their funding currency is unavailable.`
+    : note;
+}
+
+function setFundingAnalyticsUnavailable() {
+  for (const id of [
+    'funding-analytics-requested',
+    'funding-analytics-approved',
+    'funding-analytics-applications',
+    'funding-analytics-rate',
+    'funding-analytics-change',
+  ]) {
+    document.getElementById(id).textContent = '—';
+  }
+  document.getElementById('funding-analytics-chart').textContent =
+    'Funding analytics are unavailable until the dashboard data can be loaded.';
+  document.getElementById('funding-analytics-currency').disabled = true;
 }
 
 function setupProjectCalendar() {
