@@ -45,7 +45,6 @@ function renderSidebar(activePage, profile, mobile = false) {
         <span>Partner<span>Hub</span></span>
       </a>
       <nav class="sidebar-nav" aria-label="Main navigation">${renderNavigation(activePage, profile)}</nav>
-      <div class="sidebar-help"><span class="help-icon"><i class="bi bi-life-preserver" aria-hidden="true"></i></span><div><strong>Need a hand?</strong><span>Workspace help</span></div><i class="bi bi-arrow-up-right ms-auto" aria-hidden="true"></i></div>
     </div>
   `;
 }
@@ -65,7 +64,11 @@ export function renderLayout(pageId, profile) {
       <div class="app-main">
         <header class="topbar">
           <button class="btn btn-light border mobile-menu-button" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobile-navigation" aria-controls="mobile-navigation" aria-label="Open navigation"><i class="bi bi-list" aria-hidden="true"></i></button>
-          <div class="topbar-context"><span class="topbar-context-label">Workspace</span><span class="topbar-context-name">PartnerHub</span><i class="bi bi-chevron-down" aria-hidden="true"></i></div>
+          <nav class="topbar-context" aria-label="Breadcrumb">
+            <a class="topbar-context-home" href="/src/pages/dashboard.html"><i class="bi bi-layers" aria-hidden="true"></i><span>PartnerHub</span></a>
+            <span class="topbar-context-separator" aria-hidden="true">/</span>
+            <span class="topbar-context-current" aria-current="page">${page.title}</span>
+          </nav>
           <div class="topbar-actions">
             <span class="environment-pill"><span></span><span id="role-label"></span></span>
             <span class="topbar-user-name" id="auth-user-name"></span>
