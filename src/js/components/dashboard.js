@@ -180,7 +180,9 @@ function setupProjectCalendar() {
     }
 
     agendaEvents.innerHTML = dayEvents.map((item) => `
-      <article class="agenda-event agenda-event-${item.type}">
+      <a class="agenda-event agenda-event-${item.type}"
+         href="/src/pages/projects.html?project=${encodeURIComponent(item.projectId)}"
+         aria-label="${escapeHtml(`${item.title}. ${item.detail}. Open related project.`)}">
         <span class="agenda-event-icon" aria-hidden="true"><i class="bi ${calendarEventIcon(item.type)}"></i></span>
         <div class="agenda-event-copy">
           <span class="agenda-event-type">${calendarEventLabel(item.type)}</span>
@@ -188,7 +190,8 @@ function setupProjectCalendar() {
           <p>${escapeHtml(item.detail)}</p>
           <span class="agenda-event-status">${escapeHtml(item.status)}</span>
         </div>
-      </article>
+        <i class="bi bi-arrow-up-right agenda-event-link-icon" aria-hidden="true"></i>
+      </a>
     `).join('');
   }
 }

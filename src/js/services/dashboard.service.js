@@ -128,6 +128,7 @@ export async function getProjectCalendarEvents(startDate, endDate) {
   return [
     ...(projectStarts.data ?? []).map((project) => ({
       id: `start-${project.id}`,
+      projectId: project.id,
       date: project.start_date,
       title: project.name,
       detail: 'Project kickoff',
@@ -136,6 +137,7 @@ export async function getProjectCalendarEvents(startDate, endDate) {
     })),
     ...(projectEnds.data ?? []).map((project) => ({
       id: `end-${project.id}`,
+      projectId: project.id,
       date: project.end_date,
       title: project.name,
       detail: 'Target completion',
@@ -144,6 +146,7 @@ export async function getProjectCalendarEvents(startDate, endDate) {
     })),
     ...(milestones.data ?? []).map((milestone) => ({
       id: `milestone-${milestone.id}`,
+      projectId: milestone.project_id,
       date: milestone.due_date,
       title: milestone.title,
       detail: milestone.project?.name ?? 'Project milestone',

@@ -737,6 +737,21 @@ a {
   border-left: 3px solid #2878c8;
   border-radius: 9px;
   background: #fff;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.agenda-event:hover {
+  border-color: #cbd9e8;
+  color: inherit;
+  box-shadow: 0 5px 14px rgb(22 58 95 / 8%);
+  transform: translateY(-1px);
+}
+
+.agenda-event:focus-visible {
+  outline: 3px solid rgb(40 120 200 / 35%);
+  outline-offset: 2px;
 }
 
 .agenda-event-start {
@@ -780,6 +795,19 @@ a {
 
 .agenda-event-copy {
   min-width: 0;
+}
+
+.agenda-event-link-icon {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  margin-left: auto;
+  color: #97a4b4;
+  font-size: 0.72rem;
+}
+
+.agenda-event:hover .agenda-event-link-icon,
+.agenda-event:focus-visible .agenda-event-link-icon {
+  color: #2878c8;
 }
 
 .agenda-event-type {
@@ -890,6 +918,11 @@ a {
 
 .data-table > tbody > tr > td {
   padding: 10px 15px;
+}
+
+.data-table > tbody > tr.project-row-highlight > td {
+  background-color: #edf5ff;
+  transition: background-color 0.3s ease;
 }
 
 .empty-state {

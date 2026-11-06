@@ -22,6 +22,7 @@ export function setupProjectsPage() {
   let projects = [];
   let applications = [];
   let editingProjectId = null;
+  let requestedProjectId = new URLSearchParams(window.location.search).get('project');
 
   document.querySelector('[data-action="project-create"]').addEventListener('click', () => {
     editingProjectId = null;
@@ -30,8 +31,8 @@ export function setupProjectsPage() {
     setEditMode(false);
     modal.show();
   });
-  search.addEventListener('input', filterProjects);
-  statusFilter.addEventListener('change', filterProjects);
+  search.addEventListener('input', clearRequestedProject);
+  statusFilter.addEventListener('change', clearRequestedProject);
   startDateInput.addEventListener('change', validateDates);
   endDateInput.addEventListener('change', validateDates);
 
@@ -158,6 +159,7 @@ export function setupProjectsPage() {
       }
       renderProjects();
       filterProjects();
+      focusRequestedProject();
     } catch (error) {
       loading.classList.add('d-none');
       errorPanel.textContent = `Unable to load projects: ${getErrorMessage(error, 'Please try again.')}`;
@@ -184,6 +186,7 @@ export function setupProjectsPage() {
   function renderProjects() {
     document.getElementById('projects-body').innerHTML = projects.map((project) => `
       <tr data-project-row
+          data-project-id="${escapeHtml(project.id)}"
           data-search="${escapeHtml(`${project.name} ${project.customer?.name ?? ''}`.toLowerCase())}"
           data-status="${escapeHtml(project.status)}">
         <td><span class="fw-semibold">${escapeHtml(project.name)}</span></td>
@@ -198,13 +201,39 @@ export function setupProjectsPage() {
     `).join('');
   }
 
+  function clearRequestedProject() {
+    requestedProjectId = null;
+    document.querySelectorAll('.project-row-highlight').forEach((row) => {
+      row.classList.remove('project-row-highlight');
+    });
+    filterProjects();
+  }
+
+  function focusRequestedProject() {
+    if (!requestedProjectId) return;
+
+    const row = [...document.querySelectorAll('[data-project-row]')]
+      .find((item) => item.dataset.projectId === requestedProjectId);
+    if (!row) {
+      requestedProjectId = null;
+      filterProjects();
+      showPageNotice('The linked project is unavailable or you do not have access to it.', 'warning');
+      return;
+    }
+
+    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    row.classList.add('project-row-highlight');
+    window.setTimeout(() => row.classList.remove('project-row-highlight'), 3000);
+  }
+
   function filterProjects() {
     const query = search.value.trim().toLowerCase();
     const selectedStatus = statusFilter.value;
     const rows = [...document.querySelectorAll('[data-project-row]')];
     let visibleRows = 0;
     for (const row of rows) {
-      const visible = row.dataset.search.includes(query)
+      const visible = (!requestedProjectId || row.dataset.projectId === requestedProjectId)
+        && row.dataset.search.includes(query)
         && (!selectedStatus || row.dataset.status === selectedStatus);
       row.classList.toggle('d-none', !visible);
       if (visible) visibleRows += 1;
