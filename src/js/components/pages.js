@@ -561,6 +561,7 @@ export function renderAuthPage(pageId) {
   const isRegister = pageId === 'register';
   return `
     <main class="auth-page">
+      <button class="btn btn-outline-secondary theme-toggle auth-theme-toggle" type="button" data-theme-toggle aria-label="Switch to dark mode" title="Switch to dark mode"><i class="bi bi-moon-stars" aria-hidden="true"></i></button>
       <a class="auth-brand" href="/src/pages/login.html"><span class="brand-mark"><i class="bi bi-layers" aria-hidden="true"></i></span><span>Partner<span>Hub</span></span></a>
       <section class="card auth-card">
         <div class="card-body">
@@ -588,6 +589,7 @@ export function renderPasswordRecoveryPage(mode) {
   const isUpdate = mode === 'update';
   return `
     <main class="auth-page">
+      <button class="btn btn-outline-secondary theme-toggle auth-theme-toggle" type="button" data-theme-toggle aria-label="Switch to dark mode" title="Switch to dark mode"><i class="bi bi-moon-stars" aria-hidden="true"></i></button>
       <a class="auth-brand" href="/src/pages/login.html"><span class="brand-mark"><i class="bi bi-layers" aria-hidden="true"></i></span><span>Partner<span>Hub</span></span></a>
       <section class="card auth-card">
         <div class="card-body">

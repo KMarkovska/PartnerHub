@@ -70,6 +70,7 @@ export function renderLayout(pageId, profile) {
             <span class="topbar-context-current" aria-current="page">${page.title}</span>
           </nav>
           <div class="topbar-actions">
+            <button class="btn btn-sm btn-outline-secondary theme-toggle" type="button" data-theme-toggle aria-label="Switch to dark mode" title="Switch to dark mode"><i class="bi bi-moon-stars" aria-hidden="true"></i></button>
             <span class="environment-pill"><span></span><span id="role-label"></span></span>
             <span class="topbar-user-name" id="auth-user-name"></span>
             <button class="btn btn-sm btn-outline-secondary sign-out-button" type="button" data-auth-action="sign-out"><i class="bi bi-box-arrow-right me-1" aria-hidden="true"></i>Sign out</button>

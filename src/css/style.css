@@ -1588,3 +1588,277 @@ a {
     width: min(100%, 2080px);
   }
 }
+
+.theme-toggle {
+  display: inline-grid;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  font-size: 0.9rem;
+}
+
+.auth-page {
+  position: relative;
+}
+
+.auth-theme-toggle {
+  position: absolute;
+  top: 20px;
+  right: 22px;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --navy: #a7c8eb;
+  --blue: #70b4f2;
+  --muted: #a0aec0;
+  --line: #334155;
+  --surface: #182332;
+  --surface-soft: #202d3d;
+  --shadow-card: 0 8px 26px rgb(0 0 0 / 18%);
+}
+
+[data-theme="dark"] body {
+  background:
+    radial-gradient(ellipse at 86% 0%, rgb(40 120 200 / 9%), transparent 32rem),
+    #111a26;
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .sidebar,
+[data-theme="dark"] .topbar,
+[data-theme="dark"] .card,
+[data-theme="dark"] .content-card .card-header,
+[data-theme="dark"] .environment-pill,
+[data-theme="dark"] .agenda-event,
+[data-theme="dark"] .analytics-metric,
+[data-theme="dark"] .admin-metric {
+  border-color: #334155;
+  background-color: #182332;
+  color: #d7e0eb;
+}
+
+[data-theme="dark"] .topbar {
+  border-bottom-color: #334155;
+}
+
+[data-theme="dark"] .page-heading-dashboard {
+  border-color: #30455d;
+  background: linear-gradient(112deg, #182332 4%, #1b2b3c 58%, #20374d 100%);
+}
+
+[data-theme="dark"] .kpi-card {
+  border-color: #334155;
+  background: linear-gradient(145deg, #1b2939, #182332);
+}
+
+[data-theme="dark"] .auth-page {
+  background: radial-gradient(ellipse at 50% 35%, #202c3b 0%, #111a26 74%);
+}
+
+[data-theme="dark"] .auth-card {
+  border-color: #334155;
+}
+
+[data-theme="dark"] .auth-loading {
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .calendar-day,
+[data-theme="dark"] .calendar-grid,
+[data-theme="dark"] .analytics-data-details[open] > .table-responsive {
+  border-color: #334155;
+  background-color: #182332;
+}
+
+[data-theme="dark"] .calendar-day {
+  color: #d7e0eb;
+}
+
+[data-theme="dark"] .calendar-day-outside {
+  background-color: #151f2c;
+  color: #718096;
+}
+
+[data-theme="dark"] .calendar-day:hover,
+[data-theme="dark"] .calendar-day-selected {
+  background-color: #20374d;
+}
+
+[data-theme="dark"] .calendar-agenda {
+  border-color: #334155;
+  background: linear-gradient(180deg, #1a2736, #182332);
+}
+
+[data-theme="dark"] .agenda-event:hover {
+  border-color: #49627c;
+}
+
+[data-theme="dark"] .agenda-event-status,
+[data-theme="dark"] .agenda-count,
+[data-theme="dark"] .calendar-heading-icon,
+[data-theme="dark"] .agenda-event-icon {
+  background-color: #26394d;
+  color: #a9d2f7;
+}
+
+[data-theme="dark"] .agenda-event-start .agenda-event-icon {
+  background-color: #1d3b32;
+  color: #7dd7ae;
+}
+
+[data-theme="dark"] .agenda-event-end .agenda-event-icon {
+  background-color: #3d3324;
+  color: #f0bf74;
+}
+
+[data-theme="dark"] .agenda-event-milestone .agenda-event-icon {
+  background-color: #342b49;
+  color: #c3a9f4;
+}
+
+[data-theme="dark"] .setup-notice {
+  border-color: #304b66;
+  background: #1b2b3c;
+  color: #c2d7ec;
+}
+
+[data-theme="dark"] .calendar-error {
+  border-color: #65363d;
+  background: #38252b;
+  color: #f0a8ae;
+}
+
+[data-theme="dark"] .analytics-grid-line {
+  stroke: #344255;
+}
+
+[data-theme="dark"] .analytics-bar-requested:focus,
+[data-theme="dark"] .analytics-bar-approved:focus {
+  stroke: #c5dff8;
+}
+
+[data-theme="dark"] .bi-blue,
+[data-theme="dark"] .bi-amber,
+[data-theme="dark"] .bi-green,
+[data-theme="dark"] .bi-violet {
+  background: #26394d;
+}
+
+[data-theme="dark"] .table {
+  --bs-table-color: #d7e0eb;
+  --bs-table-bg: transparent;
+  --bs-table-border-color: #334155;
+  --bs-table-striped-bg: #1d2a39;
+  --bs-table-striped-color: #d7e0eb;
+  --bs-table-hover-bg: #223245;
+  --bs-table-hover-color: #edf4fb;
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select,
+[data-theme="dark"] .input-group-text {
+  border-color: #405166;
+  background-color: #151f2c;
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .form-control::placeholder {
+  color: #8795a7;
+}
+
+[data-theme="dark"] .modal-content,
+[data-theme="dark"] .dropdown-menu {
+  border-color: #334155;
+  background-color: #182332;
+  color: #d7e0eb;
+}
+
+[data-theme="dark"] .modal-header,
+[data-theme="dark"] .modal-footer {
+  border-color: #334155;
+}
+
+[data-theme="dark"] .btn-light,
+[data-theme="dark"] .mobile-menu-button {
+  border-color: #405166 !important;
+  background-color: #202d3d;
+  color: #d7e0eb;
+}
+
+[data-theme="dark"] .dropdown-item {
+  color: #d7e0eb;
+}
+
+[data-theme="dark"] .dropdown-item:hover,
+[data-theme="dark"] .dropdown-item:focus {
+  background-color: #26394d;
+  color: #fff;
+}
+
+[data-theme="dark"] .page-footer {
+  border-top-color: #334155;
+}
+
+[data-theme="dark"] .auth-card h1,
+[data-theme="dark"] .page-heading h1,
+[data-theme="dark"] .agenda-heading h3,
+[data-theme="dark"] .agenda-event-copy h4,
+[data-theme="dark"] .kpi-value,
+[data-theme="dark"] .project-stat strong,
+[data-theme="dark"] .admin-metric strong,
+[data-theme="dark"] .analytics-metric > strong {
+  color: #e6edf5;
+}
+
+[data-theme="dark"] .topbar-user-name,
+[data-theme="dark"] .mobile-menu-button,
+[data-theme="dark"] .form-label,
+[data-theme="dark"] .auth-card .form-label,
+[data-theme="dark"] .calendar-day-activity,
+[data-theme="dark"] .analytics-legend,
+[data-theme="dark"] .analytics-data-details > summary,
+[data-theme="dark"] .project-stat,
+[data-theme="dark"] .admin-metric {
+  color: #b1bdcc;
+}
+
+[data-theme="dark"] .page-eyebrow,
+[data-theme="dark"] .page-heading-copy > p,
+[data-theme="dark"] .auth-eyebrow,
+[data-theme="dark"] .auth-description,
+[data-theme="dark"] .auth-switch,
+[data-theme="dark"] .analytics-metric > span,
+[data-theme="dark"] .analytics-axis-label,
+[data-theme="dark"] .analytics-period-label,
+[data-theme="dark"] .analytics-note,
+[data-theme="dark"] .analytics-current-period-note,
+[data-theme="dark"] .kpi-label,
+[data-theme="dark"] .kpi-footnote,
+[data-theme="dark"] .agenda-kicker,
+[data-theme="dark"] .agenda-event-type,
+[data-theme="dark"] .agenda-event-copy p {
+  color: #9aa9bb;
+}
+
+[data-theme="dark"] .auth-brand,
+[data-theme="dark"] .sidebar-brand {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .content-card .card-header {
+  border-bottom-color: #334155;
+}
+
+[data-theme="dark"] .calendar-grid {
+  overflow: hidden;
+}
+
+@media (max-width: 575.98px) {
+  .auth-theme-toggle {
+    top: 12px;
+    right: 12px;
+  }
+}

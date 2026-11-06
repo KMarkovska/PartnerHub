@@ -21,6 +21,8 @@ import {
 } from './services/auth.service.js';
 import { supabase } from './config/supabase.js';
 
+setupThemeToggle();
+
 const pageId = document.body.dataset.page;
 const authPages = new Set(['login', 'register']);
 let isManualSignOut = false;
@@ -28,14 +30,17 @@ let isManualSignOut = false;
 if (authPages.has(pageId)) {
   document.title = `${pageId === 'login' ? 'Sign in' : 'Create account'} | PartnerHub`;
   document.getElementById('app').innerHTML = renderAuthPage(pageId);
+  applyTheme(document.documentElement.dataset.theme);
   await setupAuthForm(pageId);
 } else if (pageId === 'forgot-password') {
   document.title = 'Reset password | PartnerHub';
   document.getElementById('app').innerHTML = renderPasswordRecoveryPage('request');
+  applyTheme(document.documentElement.dataset.theme);
   setupPasswordRecoveryRequest();
 } else if (pageId === 'reset-password') {
   document.title = 'Choose a new password | PartnerHub';
   document.getElementById('app').innerHTML = renderPasswordRecoveryPage('update');
+  applyTheme(document.documentElement.dataset.theme);
   await setupPasswordUpdate();
 } else {
   await setupProtectedPage(pageId);
@@ -122,6 +127,34 @@ async function setupPasswordUpdate() {
       submitButton.removeAttribute('aria-busy');
     }
   });
+}
+
+function setupThemeToggle() {
+  const savedTheme = localStorage.getItem('partnerhub-theme');
+  applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
+
+  document.addEventListener('click', (event) => {
+    const toggle = event.target.closest('[data-theme-toggle]');
+    if (!toggle) return;
+
+    const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('partnerhub-theme', nextTheme);
+    applyTheme(nextTheme);
+  });
+}
+
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  document.documentElement.dataset.bsTheme = theme;
+
+  for (const toggle of document.querySelectorAll('[data-theme-toggle]')) {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    const label = `Switch to ${nextTheme} mode`;
+    toggle.setAttribute('aria-label', label);
+    toggle.setAttribute('title', label);
+    const icon = toggle.querySelector('i');
+    if (icon) icon.className = `bi ${theme === 'dark' ? 'bi-sun' : 'bi-moon-stars'}`;
+  }
 }
 
 async function setupAuthForm(formPage) {
@@ -303,6 +336,7 @@ async function setupProtectedPage(protectedPageId) {
   }
 
   renderLayout(protectedPageId, identity.profile);
+  applyTheme(document.documentElement.dataset.theme);
   setProfileSummary(identity.profile);
   setupAuthStateListener(identity.user.id);
   setupPageActions();
