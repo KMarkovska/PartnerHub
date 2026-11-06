@@ -1,29 +1,133 @@
 # PartnerHub
 
-PartnerHub is a responsive, multi-page starter for managing partner funding applications, customers, projects, documents, and funding programs.
+PartnerHub is a responsive, multi-page funding and project management application for organizing customers, funding applications, projects, milestones, and supporting documents.
+
+**Live application:** [Open PartnerHub](https://partnerhubapp.netlify.app/src/pages/login.html)
+
+## Features
+
+- Supabase email/password registration, sign-in, password recovery, persistent sessions, and protected pages.
+- Role-aware workspaces for administrators and regular users, with PostgreSQL Row-Level Security (RLS) enforcing access.
+- Searchable funding applications, customers, projects, documents, and funding programs.
+- Dashboard statistics, recent applications, upcoming deadlines, and a project calendar with links to related projects.
+- Monthly or yearly funding trend analysis by currency. Trends compare requested amounts with currently approved allocations; they do not represent payments, cash spent, or profit.
+- Private Supabase Storage for documents, with file type and 20 MiB size validation.
+- Dark mode by default, with a persistent light-mode option.
+- Responsive interface for desktop, tablet, and mobile.
+
+## User roles
+
+| Role | Access |
+| --- | --- |
+| Regular user | Manage their own customers, applications, and projects; manage milestones for their projects; view active funding programs; and access documents allowed by ownership policies. |
+| Administrator | View and manage platform-wide customers, applications, and projects; manage users and account activation; manage funding programs; and administer documents and milestones. |
+
+Roles and ownership are enforced in PostgreSQL policies and trusted database functions, not only in the interface. New profiles default to `user`; users cannot promote themselves.
 
 ## Technology
 
-- HTML, CSS, and JavaScript ES modules
+- HTML5, CSS3, and plain JavaScript ES modules
 - Bootstrap 5 and Bootstrap Icons
-- Vite
-- Supabase Auth client using the publishable key from local environment variables
+- Vite and npm
+- Supabase Auth, PostgreSQL, RLS, and private Storage
+- Netlify for the hosted frontend
+- GitHub Actions for local-database authorization tests
 
-## Run locally
+## Architecture
+
+Each screen has its own HTML entry point. `src/js/main.js` handles page startup and authentication, shared layout and page templates live under `src/js/components/`, and Supabase operations are separated into `src/js/services/`. The Supabase client is initialized in `src/js/config/supabase.js`. Database schema, policies, functions, Storage setup, and status workflow are maintained as ordered SQL migrations in `supabase/migrations/`.
+
+Vite's multi-page inputs are configured in `vite.config.js`. Data shown by the application comes from Supabase; the dashboard does not use hardcoded application metrics.
+
+## Database schema
+
+The database has seven application tables:
+
+| Table | Purpose |
+| --- | --- |
+| `profiles` | User profile, role, and activation status linked to Supabase Auth. |
+| `customers` | Customer/company details and assigned owner. |
+| `funding_programs` | Funding descriptions, eligibility, limits, currency, and activation status. |
+| `applications` | Funding requests, status, deadline, and requested/approved amounts. |
+| `projects` | Projects linked to an application and customer, with owner, dates, status, and progress. |
+| `milestones` | Dated work items belonging to a project. |
+| `documents` | Metadata and private Storage path for an application or project file. |
+
+UUID keys, foreign keys, checks, indexes, and RLS are defined in the migrations. A document must reference exactly one application or project. The actual file is stored in the private `partnerhub-documents` bucket, not in PostgreSQL.
+
+Application statuses are `Draft`, `Submitted`, `Under Review`, `Approved`, and `Rejected`. Project and milestone statuses are `Not Started`, `In Progress`, `Completed`, and `On Hold`.
+
+```mermaid
+erDiagram
+    PROFILES ||--o{ CUSTOMERS : owns
+    PROFILES ||--o{ APPLICATIONS : owns
+    CUSTOMERS ||--o{ APPLICATIONS : receives
+    FUNDING_PROGRAMS ||--o{ APPLICATIONS : funds
+    APPLICATIONS ||--o{ PROJECTS : "may start"
+    CUSTOMERS ||--o{ PROJECTS : includes
+    PROFILES ||--o{ PROJECTS : owns
+    PROJECTS ||--o{ MILESTONES : tracks
+    PROFILES ||--o{ DOCUMENTS : uploads
+    APPLICATIONS o|--o{ DOCUMENTS : attachments
+    PROJECTS o|--o{ DOCUMENTS : attachments
+```
+
+Each document is associated with **either** an application **or** a project, never both; this is enforced by a database constraint.
+
+## Repository structure
+
+```text
+.
+├── .github/
+│   ├── copilot-instructions.md
+│   └── workflows/database-tests.yml
+├── public/assets/screenshots/
+├── src/
+│   ├── css/style.css
+│   ├── js/
+│   │   ├── components/
+│   │   ├── config/supabase.js
+│   │   ├── services/
+│   │   └── main.js
+│   └── pages/
+├── supabase/
+│   ├── migrations/
+│   ├── seed.sql
+│   └── tests/database/
+├── .env.example
+├── package.json
+├── vite.config.js
+└── README.md
+```
+
+## Screenshots
+
+The screenshot below was captured from the running PartnerHub sign-in page using the default dark theme. It contains no account credentials.
+
+![PartnerHub sign-in page in dark mode](./public/assets/screenshots/partnerhub-login.png)
+
+## Environment and local development
 
 Install dependencies and start the Vite development server:
 
 ```sh
 npm install
+```
+
+Copy `.env.example` to `.env`, then set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` to your Supabase project URL and publishable/anon key. Never put a Supabase secret or service-role key in frontend environment variables. `.env` is ignored by Git.
+
+Start the app:
+
+```sh
 npm run dev
 ```
 
-Copy `.env.example` to `.env` and set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` to your Supabase project URL and publishable key. Never put a Supabase secret or service-role key in frontend environment variables. `.env` is ignored by Git.
-
-Open the local URL printed by Vite. The root page takes you to the sign-in screen. The current screens are available at:
+Open the local URL printed by Vite. The root page redirects to sign-in. Screens are available at:
 
 - `/src/pages/login.html`
 - `/src/pages/register.html`
+- `/src/pages/forgot-password.html`
+- `/src/pages/reset-password.html`
 - `/src/pages/dashboard.html`
 - `/src/pages/applications.html`
 - `/src/pages/customers.html`
@@ -32,7 +136,7 @@ Open the local URL printed by Vite. The root page takes you to the sign-in scree
 - `/src/pages/admin.html`
 - `/src/pages/programs.html`
 
-Sign-in, account creation, session persistence, protected pages, profile loading, role-based navigation, administrator-only routing, and logout use Supabase Auth and the `profiles` table. New accounts receive the database's default `user` role through the profile trigger; registration never accepts a role. Supabase RLS and database functions remain the authority for data access. The Administration page uses Supabase for its user list, access changes, and metrics. Other database-backed page data and file upload/download workflows are not implemented yet.
+The application uses Supabase Auth and the `profiles` table for sign-in, registration, password recovery, session persistence, profile loading, and role-aware routing. Registration does not accept a role. Supabase RLS and database functions remain the authority for data access.
 
 ## Authentication end-to-end testing
 
@@ -54,25 +158,24 @@ The safest manual option is an isolated local Supabase stack with Docker and the
 4. Open the confirmation email in the catcher. The link should return to `/src/pages/login.html` and establish a session. In the local Studio SQL Editor (`http://127.0.0.1:54323`), verify a `profiles` row exists for the Auth user with role `user` and `is_active = true`.
 5. Sign out, verify the correct password signs in, and verify an incorrect password displays an error. Refresh a protected page while signed in; the session should remain active.
 6. As the regular user, open `/src/pages/admin.html` directly; the app should redirect to the dashboard with an access-denied notice. Sign out and open a protected page; it should redirect to sign-in.
-7. To test administration, create a second disposable user and use the documented first-admin bootstrap only in this isolated local database. Sign in as the admin; verify the user table and counts load, then change the other test user role/status. The current administrator own access controls should be disabled.
+7. To test administration, create a second disposable user and use the documented first-admin bootstrap only in this isolated local database. Sign in as the admin; verify the user table and counts load, then change the other test user's role/status. The current administrator's own access controls should be disabled.
+8. On the sign-in page, choose **Forgot password?**, request a reset for the test account, and use the email link to choose a new password. The reset callback is `/src/pages/reset-password.html`.
 
-If testing against a hosted environment, use a separate staging Supabase project and a test mailbox you control, never production data. Add the exact staging app callback URL ending in `/src/pages/login.html` to **Authentication > URL Configuration > Redirect URLs**. Do not use real employee/customer details or commit test credentials.
+For hosted testing, add the app's exact callback URLs ending in `/src/pages/login.html` and `/src/pages/reset-password.html` to **Authentication > URL Configuration > Redirect URLs**. Use a test mailbox you control, never real employee/customer details, and do not commit test credentials.
 
 ## Supabase database setup
 
-The schema and access-control source is in `supabase/migrations/20261031190000_partnerhub_backend.sql`. It was applied to the hosted project through the Supabase SQL Editor on 2026-10-31. Live checks confirmed all seven tables have RLS enabled, all 12 foreign keys and the document-parent constraint exist, the private bucket and its three Storage policies exist, and the profile trigger and guarded administrator function are installed. The pgTAP suite has not been run against the hosted project.
+The ordered migrations in `supabase/migrations/` define the complete schema and access rules. For a new Supabase project:
 
-The administration email listing and self-access protection are in `supabase/migrations/20261031200139_admin_user_management.sql`. Apply this migration after the base migration in each target project before using the updated Administration page. This change has not been applied to the hosted project.
-
-1. Open the [PartnerHub Supabase SQL Editor](https://supabase.com/dashboard/project/pxsapaipigauweaghzwg/sql/new).
-2. The current hosted project already has this migration. For a different project, first confirm the seven PartnerHub tables and `partnerhub-documents` bucket do not exist; the migration aborts if the bucket already exists and does not drop or replace existing objects.
-3. To apply it to a clean project, run the complete `supabase/migrations/20261031190000_partnerhub_backend.sql` file in the SQL Editor. The SQL runs in a transaction.
-4. The live project currently has no active profiles, so demo data has not been seeded. Register an account, bootstrap the first administrator using the trusted SQL below, then run `supabase/seed.sql` in the SQL Editor. Seeding requires at least one active profile and creates no user accounts.
-5. The SQL test suite is `supabase/tests/database/partnerhub_rls.test.sql`; run it against a local Docker database with Supabase CLI (`supabase test db`). It has not been run against the hosted project.
-
-The migration uses `RESTRICT` on record relationships to avoid cascading deletion of business records. RLS limits customer/application/project access to active owners or active administrators; milestone access follows project ownership; document access follows its application or project; inactive funding programs are hidden from regular users. Profile roles can only be changed through the administrator-guarded database function after the first administrator is bootstrapped. The storage bucket is private, limits uploads to 20 MiB and the listed document/image types, and uses paths shaped as `<uploader-uuid>/<applications|projects>/<record-uuid>/<document-uuid>/<filename>`.
-
-New profiles default to `user`. To bootstrap the first administrator, use the trusted SQL Editor as the project owner after registration, replacing the UUID with that user's `profiles.id`:
+1. Create a Supabase project and open its SQL Editor.
+2. Apply each migration in timestamp order:
+   - `20261031190000_partnerhub_backend.sql`
+   - `20261031200139_admin_user_management.sql`
+   - `20261101105119_application_status_workflow.sql`
+   - `20261102160557_admin_submit_draft.sql`
+3. Configure the Authentication site URL and redirect allowlist to include the app's `/src/pages/login.html` and `/src/pages/reset-password.html` URLs.
+4. Configure the app's environment variables as described above.
+5. Register an account. New profiles receive the `user` role by default. For a new project only, bootstrap the first administrator through the trusted SQL Editor as the project owner, replacing the placeholder with the registered user's profile UUID:
 
 ```sql
 update public.profiles
@@ -80,7 +183,27 @@ set role = 'admin'
 where id = 'AUTH_USER_UUID';
 ```
 
-After that, active administrators should use the guarded `public.set_profile_access` function to assign roles or deactivate accounts. Application clients cannot update profile roles directly.
+After the initial bootstrap, active administrators should use the guarded `public.set_profile_access` function to assign roles or deactivate accounts. Application clients cannot update profile roles directly. Do not use the bootstrap SQL to promote an account on an existing production project.
+
+The optional `supabase/seed.sql` script creates fictional sample data for four funding programs, five customers, three applications, two projects, and three milestones. It requires an active profile first, creates no Auth users, and assigns the sample records to the oldest active profile. It uses fixed IDs and `ON CONFLICT DO NOTHING`; review ownership and existing records before running it. No shared demo login or password is published. Use the registration page for a regular account, and have an authorized administrator provision admin access.
+
+The base migration enables RLS on all seven application tables, uses restrictive foreign-key deletion behavior, and creates the private `partnerhub-documents` bucket. Storage limits uploads to 20 MiB and supported document/image types. Files use paths shaped as `<uploader-uuid>/<applications|projects>/<record-uuid>/<document-uuid>/<filename>`. Related-record ownership and active-account checks are enforced in the database.
+
+For an existing project, inspect its migration history and schema first. Apply only migrations that are not already present; do not blindly rerun the base migration against a database with existing PartnerHub tables or Storage objects. The hosted project is at [PartnerHub Supabase](https://supabase.com/dashboard/project/pxsapaipigauweaghzwg).
+
+## Run database tests locally
+
+The pgTAP suite at `supabase/tests/database/partnerhub_rls.test.sql` exercises row ownership, role protections, anonymous access, administrator permissions, and document Storage policies. It runs in a transaction and rolls back its fixtures. Do not run these test fixtures against the hosted project; the `test:db` script explicitly targets the local Supabase database.
+
+On Windows, Docker Desktop requires WSL 2. If WSL is not installed, open PowerShell as an administrator, run `wsl --install --no-distribution`, and restart Windows. Then install and start Docker Desktop. From the repository root run:
+
+```sh
+npm install
+npx supabase start
+npm run test:db
+```
+
+The Supabase CLI is pinned in `devDependencies`. Local automatic seeding is disabled in `supabase/config.toml` because the demo seed requires a registered active profile; the RLS test creates its own temporary users and records.
 
 GitHub Actions runs the same pgTAP suite on pushes to `main` and pull requests targeting `main`. The workflow uses a fresh local Supabase stack on `ubuntu-latest` and does not connect to the hosted project or require production secrets. View results in the repository's **Actions** tab under **Database tests**.
 
@@ -93,8 +216,12 @@ npm run preview
 
 Vite builds each page as a separate HTML entry under `dist/`.
 
+## Deployment
+
+The production application is hosted on Netlify: [https://partnerhubapp.netlify.app](https://partnerhubapp.netlify.app). Open the [PartnerHub sign-in page](https://partnerhubapp.netlify.app/src/pages/login.html) to use it. Production deploys use the Vite build output in `dist/`; configure the Supabase URL and publishable/anon key as Netlify environment variables for the target deploy context.
+
 ## Application status workflow
 
-Regular users can submit their own draft applications for review. Administrators can submit drafts on behalf of users, move submitted applications to **Under Review**, **Approved**, or **Rejected**, and approve or reject applications under review.
+Regular users can submit their own draft applications for review. Administrators can submit drafts on behalf of users, move submitted applications to **Under Review**, **Approved**, or **Rejected**, and approve or reject applications under review. The database enforces the allowed transitions.
 
-The database enforces these transitions. Apply `supabase/migrations/20261101105119_application_status_workflow.sql` and `supabase/migrations/20261102160557_admin_submit_draft.sql` to the target Supabase database before using the status controls in a deployment.
+The migrations that implement these transitions are listed in timestamp order in [Supabase database setup](#supabase-database-setup); ensure they have been applied to the target database before using the status controls.
