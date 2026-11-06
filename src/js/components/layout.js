@@ -76,7 +76,7 @@ export function renderLayout(pageId, profile) {
           </div>
         </header>
         <main class="page-content">
-          <div class="page-heading">
+          <div class="page-heading page-heading-${pageId}">
             <div class="page-heading-copy"><div class="page-eyebrow"><i class="bi ${page.icon}" aria-hidden="true"></i> PARTNERHUB WORKSPACE</div><h1>${page.title}</h1><p>${page.subtitle}</p></div>
             ${page.action && (!page.actionAdminOnly || profile.role === 'admin') ? `<div class="page-heading-action">${page.action}</div>` : ''}
           </div>

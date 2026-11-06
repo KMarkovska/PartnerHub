@@ -102,6 +102,57 @@ export async function getDashboardOverview() {
   };
 }
 
+export async function getProjectCalendarEvents(startDate, endDate) {
+  const [projectStarts, projectEnds, milestones] = await Promise.all([
+    supabase
+      .from('projects')
+      .select('id, name, status, start_date')
+      .gte('start_date', startDate)
+      .lte('start_date', endDate),
+    supabase
+      .from('projects')
+      .select('id, name, status, end_date')
+      .gte('end_date', startDate)
+      .lte('end_date', endDate),
+    supabase
+      .from('milestones')
+      .select('id, project_id, title, status, due_date, project:projects(name)')
+      .gte('due_date', startDate)
+      .lte('due_date', endDate),
+  ]);
+
+  for (const result of [projectStarts, projectEnds, milestones]) {
+    if (result.error) throw result.error;
+  }
+
+  return [
+    ...(projectStarts.data ?? []).map((project) => ({
+      id: `start-${project.id}`,
+      date: project.start_date,
+      title: project.name,
+      detail: 'Project kickoff',
+      status: project.status,
+      type: 'start',
+    })),
+    ...(projectEnds.data ?? []).map((project) => ({
+      id: `end-${project.id}`,
+      date: project.end_date,
+      title: project.name,
+      detail: 'Target completion',
+      status: project.status,
+      type: 'end',
+    })),
+    ...(milestones.data ?? []).map((milestone) => ({
+      id: `milestone-${milestone.id}`,
+      date: milestone.due_date,
+      title: milestone.title,
+      detail: milestone.project?.name ?? 'Project milestone',
+      status: milestone.status,
+      type: 'milestone',
+    })),
+  ].sort((left, right) => left.date.localeCompare(right.date) || left.title.localeCompare(right.title));
+}
+
 async function getFundingApplications(totalCount) {
   const pageSize = 500;
   const applications = [];

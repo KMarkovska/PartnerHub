@@ -27,7 +27,7 @@ export const pages = {
     subtitle: 'A clear view of your funding activity and projects.',
     icon: 'bi-grid-1x2',
     content: `
-      <div id="dashboard-loading" class="text-muted small mb-3" role="status" aria-live="polite">
+      <div id="dashboard-loading" class="dashboard-loading mb-3" role="status" aria-live="polite">
         <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Loading your workspace overview…
       </div>
       <div id="dashboard-error" class="alert alert-danger d-none" role="alert"></div>
@@ -49,6 +49,50 @@ export const pages = {
           </div>
         `).join('')}
       </div>
+      <section class="card content-card calendar-card mb-4" aria-labelledby="project-calendar-title">
+        <div class="card-header calendar-header">
+          <div class="calendar-heading">
+            <span class="calendar-heading-icon"><i class="bi bi-calendar3" aria-hidden="true"></i></span>
+            <div>
+              <h2 class="section-title" id="project-calendar-title">Project calendar</h2>
+              <p class="section-subtitle">Milestones and key project dates, all in one place</p>
+            </div>
+          </div>
+          <div class="calendar-controls" aria-label="Calendar navigation">
+            <button class="btn btn-sm btn-light border calendar-today-button" type="button" id="project-calendar-today">Today</button>
+            <button class="btn btn-sm btn-light border calendar-nav-button" type="button" id="project-calendar-previous" aria-label="Previous month"><i class="bi bi-chevron-left" aria-hidden="true"></i></button>
+            <button class="btn btn-sm btn-light border calendar-nav-button" type="button" id="project-calendar-next" aria-label="Next month"><i class="bi bi-chevron-right" aria-hidden="true"></i></button>
+          </div>
+        </div>
+        <div class="calendar-layout">
+          <div class="calendar-main">
+            <div class="calendar-month-heading">
+              <h3 id="project-calendar-month" aria-live="polite"></h3>
+              <span class="calendar-legend">
+                <span><i class="calendar-legend-dot calendar-event-marker-start"></i>Kickoff</span>
+                <span><i class="calendar-legend-dot calendar-event-marker-milestone"></i>Milestone</span>
+                <span><i class="calendar-legend-dot calendar-event-marker-end"></i>Finish</span>
+              </span>
+            </div>
+            <div class="calendar-weekdays" aria-hidden="true">
+              <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+            </div>
+            <div class="calendar-grid" id="project-calendar-grid" role="grid" aria-labelledby="project-calendar-month"></div>
+            <div class="calendar-error d-none" id="project-calendar-error" role="alert"></div>
+          </div>
+          <aside class="calendar-agenda" aria-labelledby="project-calendar-agenda-title">
+            <div class="agenda-heading">
+              <div>
+                <span class="agenda-kicker">YOUR SCHEDULE</span>
+                <h3 id="project-calendar-agenda-title">Selected day</h3>
+              </div>
+              <span class="agenda-count" id="project-calendar-count">0</span>
+            </div>
+            <div class="agenda-events" id="project-calendar-events" aria-live="polite"></div>
+            <a class="agenda-project-link" href="/src/pages/projects.html">View all projects<i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+          </aside>
+        </div>
+      </section>
       <div class="row g-3">
         <div class="col-12 col-xl-8">
           <section class="card content-card h-100">
