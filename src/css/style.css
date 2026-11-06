@@ -889,7 +889,7 @@ a {
 }
 
 .data-table > tbody > tr > td {
-  padding: 0;
+  padding: 10px 15px;
 }
 
 .empty-state {
