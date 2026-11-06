@@ -131,7 +131,7 @@ async function setupPasswordUpdate() {
 
 function setupThemeToggle() {
   const savedTheme = localStorage.getItem('partnerhub-theme');
-  applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
+  applyTheme(savedTheme === 'light' ? 'light' : 'dark');
 
   document.addEventListener('click', (event) => {
     const toggle = event.target.closest('[data-theme-toggle]');

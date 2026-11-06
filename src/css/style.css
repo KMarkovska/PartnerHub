@@ -1757,6 +1757,36 @@ a {
   --bs-table-hover-color: #edf4fb;
 }
 
+[data-theme="dark"] .data-table > thead th {
+  border-bottom-color: #334155;
+  background-color: #202d3d;
+  color: #aab8ca;
+}
+
+[data-theme="dark"] .bg-white,
+[data-theme="dark"] .input-group-text.bg-white {
+  background-color: #202d3d !important;
+  color: #aebdd0;
+}
+
+[data-theme="dark"] .text-bg-light {
+  background-color: #2a394b !important;
+  color: #d7e0eb !important;
+}
+
+[data-theme="dark"] .empty-state-icon {
+  background-color: #26394d;
+  color: #a9c7e7;
+}
+
+[data-theme="dark"] .empty-state h3 {
+  color: #d8e2ee;
+}
+
+[data-theme="dark"] .empty-state p {
+  color: #9aa9bb;
+}
+
 [data-theme="dark"] .form-control,
 [data-theme="dark"] .form-select,
 [data-theme="dark"] .input-group-text {
